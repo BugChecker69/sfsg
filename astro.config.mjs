@@ -7,7 +7,7 @@ import { defineConfig, fontProviders } from 'astro/config';
 // https://astro.build/config
 export default defineConfig({
 	site: 'https://BugChecker69.github.io',
-	base: '/personal-page',
+	base: '/sfsg',
 	integrations: [mdx(), sitemap()],
 	fonts: [
 		{
