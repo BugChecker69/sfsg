@@ -21,15 +21,11 @@ const { title, description, image = FallbackImage } = Astro.props;
 <!-- Global Metadata -->
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-<link rel="icon" href="/favicon.ico" />
-<link rel="sitemap" href="/sitemap-index.xml" />
-<link
-	rel="alternate"
-	type="application/rss+xml"
-	title={SITE_TITLE}
-	href={new URL('rss.xml', Astro.site)}
-/>
+
+<!-- ファビコン（作成した透過GIFを指定） -->
+<link rel="icon" type="image/gif" href={`${import.meta.env.BASE_URL}handshake_small_32.gif`} />
+
+<link rel="sitemap" href={`${import.meta.env.BASE_URL}sitemap-index.xml`} />
 <meta name="generator" content={Astro.generator} />
 
 <Font cssVariable="--font-atkinson" preload />
