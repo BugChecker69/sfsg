@@ -19,6 +19,7 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 				width: calc(100% - 2em);
 				max-width: 100%;
 				margin: 0;
+				box-sizing: border-box;
 			}
 			.hero-image {
 				width: 100%;
@@ -37,6 +38,7 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 				margin: auto;
 				padding: 1em;
 				color: rgb(var(--gray-dark));
+				box-sizing: border-box;
 			}
 			.title {
 				margin-bottom: 1em;
@@ -59,7 +61,7 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 				font-style: italic;
 			}
 
-			/* 本文内の見出しサイズを調整 */
+			/* 本文内の見出しサイズ調整 */
 			.prose :global(h2) {
 				font-size: 1.4rem;
 				margin-top: 2rem;
@@ -77,6 +79,32 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 			.prose :global(p),
 			.prose :global(li) {
 				line-height: 1.7;
+				word-break: break-word;
+				overflow-wrap: anywhere;
+			}
+
+			/* テーブルのスマホ溢れ防止（横スクロール対応） */
+			.prose :global(table) {
+				display: block;
+				width: 100%;
+				max-width: 100%;
+				overflow-x: auto;
+				-webkit-overflow-scrolling: touch;
+				border-collapse: collapse;
+				margin: 1.5rem 0;
+			}
+			.prose :global(th),
+			.prose :global(td) {
+				white-space: nowrap;
+				padding: 0.5rem 0.75rem;
+				border: 1px solid #e2e8f0;
+			}
+
+			/* コードブロック・長文枠外溢れ防止 */
+			.prose :global(pre) {
+				max-width: 100%;
+				overflow-x: auto;
+				-webkit-overflow-scrolling: touch;
 			}
 		</style>
 	</head>
