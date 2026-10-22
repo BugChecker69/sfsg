@@ -16,39 +16,50 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 		<BaseHead title={title} description={description} />
 		<style>
 			main {
-				width: calc(100% - 2em);
+				width: 100%;
 				max-width: 100%;
-				margin: 0;
+				margin: 0 auto;
+				padding: 1.5em 0;
 				box-sizing: border-box;
+			}
+			article {
+				width: 100%;
+				max-width: 100%;
+				margin: 0 auto;
 			}
 			.hero-image {
 				width: 100%;
+				max-width: 720px;
+				margin: 0 auto 1.5em auto;
+				padding: 0 1em;
+				box-sizing: border-box;
 			}
 			.hero-image img {
 				display: block;
 				margin: 0 auto;
 				border-radius: 12px;
 				box-shadow: var(--box-shadow);
+				width: 100%;
 				max-width: 100%;
 				height: auto;
 			}
 			.prose {
-				width: 720px;
-				max-width: calc(100% - 2em);
-				margin: auto;
-				padding: 1em;
+				width: 100%;
+				max-width: 720px;
+				margin: 0 auto;
+				padding: 0 1em;
 				color: rgb(var(--gray-dark));
 				box-sizing: border-box;
 			}
 			.title {
-				margin-bottom: 1em;
-				padding: 1em 0;
+				margin-bottom: 1.5em;
+				padding: 0.5em 0;
 				text-align: center;
 				line-height: 1;
 			}
 			.title h1 {
 				margin: 0 0 0.5em 0;
-				font-size: clamp(1.5rem, 4vw, 2.2rem);
+				font-size: clamp(1.4rem, 4.5vw, 2.2rem);
 				line-height: 1.4;
 				word-break: break-word;
 				overflow-wrap: anywhere;
@@ -61,20 +72,24 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 				font-style: italic;
 			}
 
-			/* 本文内の見出しサイズ調整 */
+			/* 見出しサイズと余白調整 */
 			.prose :global(h2) {
-				font-size: 1.4rem;
+				font-size: 1.3rem;
 				margin-top: 2rem;
 				margin-bottom: 0.8rem;
 				padding-bottom: 0.3rem;
 				border-bottom: 2px solid #e2e8f0;
 				line-height: 1.35;
+				word-break: break-word;
+				overflow-wrap: anywhere;
 			}
 			.prose :global(h3) {
 				font-size: 1.15rem;
 				margin-top: 1.5rem;
 				margin-bottom: 0.6rem;
 				line-height: 1.35;
+				word-break: break-word;
+				overflow-wrap: anywhere;
 			}
 			.prose :global(p),
 			.prose :global(li) {
@@ -83,7 +98,7 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 				overflow-wrap: anywhere;
 			}
 
-			/* テーブルのスマホ溢れ防止（横スクロール対応） */
+			/* 表の横スクロール対応（スマホでの横飛び出し完全防止） */
 			.prose :global(table) {
 				display: block;
 				width: 100%;
@@ -100,7 +115,7 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 				border: 1px solid #e2e8f0;
 			}
 
-			/* コードブロック・長文枠外溢れ防止 */
+			/* コードブロック溢れ防止 */
 			.prose :global(pre) {
 				max-width: 100%;
 				overflow-x: auto;
@@ -113,15 +128,15 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 		<Header />
 		<main>
 			<article>
-				<div class="hero-image">
-					{heroImage && (
-						typeof heroImage === 'string' ? (
+				{heroImage && (
+					<div class="hero-image">
+						{typeof heroImage === 'string' ? (
 							<img width={1020} height={510} src={heroImage} alt="" />
 						) : (
 							<Image width={1020} height={510} src={heroImage} alt="" />
-						)
-					)}
-				</div>
+						)}
+					</div>
+				)}
 				<div class="prose">
 					<div class="title">
 						<div class="date">
