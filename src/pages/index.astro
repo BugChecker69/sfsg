@@ -1,8 +1,16 @@
 ---
+import { getCollection } from 'astro:content';
+import { Image } from 'astro:assets';
 import BaseHead from '../components/BaseHead.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import FormattedDate from '../components/FormattedDate.astro';
 import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
+
+// 最新の記事を数件（ここでは最新3件）取得
+const posts = (await getCollection('blog'))
+	.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+	.slice(0, 3);
 ---
 
 <!doctype html>
@@ -17,27 +25,82 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 				padding: 3rem 1rem;
 				box-sizing: border-box;
 			}
-			h1 {
-				font-size: clamp(1.8rem, 5vw, 2.8rem);
-				line-height: 1.3;
-				margin-bottom: 1rem;
-				word-break: break-word;
-				overflow-wrap: anywhere;
+			.hero {
+				text-align: center;
+				padding: 2rem 0 3rem 0;
 			}
-			p {
-				line-height: 1.7;
+			.hero h1 {
+				font-size: clamp(2rem, 6vw, 3rem);
+				line-height: 1.2;
+				margin-bottom: 0.5rem;
+				word-break: break-word;
+			}
+			.hero p {
+				color: rgb(var(--gray));
+				font-size: 1.1rem;
+				margin: 0;
+			}
+			.recent-posts h2 {
+				font-size: 1.5rem;
+				border-bottom: 2px solid #e2e8f0;
+				padding-bottom: 0.5rem;
 				margin-bottom: 1.5rem;
-				word-break: break-word;
-				overflow-wrap: anywhere;
 			}
-			img {
-				max-width: 100%;
-				height: auto;
-				border-radius: 12px;
+			ul {
+				list-style-type: none;
+				padding: 0;
+				margin: 0;
+				display: flex;
+				flex-direction: column;
+				gap: 1.5rem;
+			}
+			li a {
+				display: flex;
+				justify-content: space-between;
+				align-items: baseline;
+				text-decoration: none;
+				gap: 1rem;
+				padding: 0.5rem;
+				border-radius: 8px;
+				transition: background 0.2s ease;
+			}
+			li a:hover {
+				background: rgba(var(--gray-light), 0.5);
+			}
+			.post-title {
+				color: rgb(var(--black));
+				font-size: 1.1rem;
+				font-weight: 500;
+				word-break: break-word;
+			}
+			li a:hover .post-title {
+				color: #185A8C;
+			}
+			.post-date {
+				color: rgb(var(--gray));
+				font-size: 0.9rem;
+				white-space: nowrap;
+			}
+			.view-all {
+				display: inline-block;
+				margin-top: 2rem;
+				text-decoration: none;
+				color: #185A8C;
+				font-weight: 600;
+			}
+			.view-all:hover {
+				text-decoration: underline;
 			}
 			@media (max-width: 720px) {
 				main {
-					padding: 2rem 1rem;
+					padding: 1.5rem 1rem;
+				}
+				.hero {
+					padding: 1.5rem 0 2rem 0;
+				}
+				li a {
+					flex-direction: column;
+					gap: 0.25rem;
 				}
 			}
 		</style>
@@ -45,13 +108,29 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 	<body>
 		<Header />
 		<main>
-			<h1>🧑‍🚀 SFSG へようこそ！</h1>
-			<p>
-				SFSG (Something Fun is Something Good) は、「楽しいことは良いことだ」をモットーに、技術の検証記録、自作Webツールの開発メモ、日々の気づきなどを発信する個人ブログです。
-			</p>
-			<p>
-				コンテンツは順次追加していきます。上のナビゲーションから「Blog」または「About」をご覧ください。
-			</p>
+			<section class="hero">
+				<h1>SFSG</h1>
+				<p>Something Fun is Something Good</p>
+			</section>
+
+			<section class="recent-posts">
+				<h2>Recent Posts</h2>
+				<ul>
+					{
+						posts.map((post) => (
+							<li>
+								<a href={`/sfsg/blog/${post.slug || post.id}/`}>
+									<span class="post-title">{post.data.title}</span>
+									<span class="post-date">
+										<FormattedDate date={post.data.pubDate} />
+									</span>
+								</a>
+							</li>
+						))
+					}
+				</ul>
+				<a href="/sfsg/blog/" class="view-all">すべての記事を見る →</a>
+			</section>
 		</main>
 		<Footer />
 	</body>
