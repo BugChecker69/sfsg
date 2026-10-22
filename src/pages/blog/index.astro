@@ -46,7 +46,8 @@ const posts = (await getCollection('blog')).sort(
 				width: 100%;
 			}
 			ul li:first-child .title {
-				font-size: 2.369rem;
+				font-size: clamp(1.4rem, 3vw, 1.8rem);
+				line-height: 1.35;
 			}
 			ul li img {
 				margin-bottom: 0.5rem;
@@ -59,7 +60,10 @@ const posts = (await getCollection('blog')).sort(
 			.title {
 				margin: 0;
 				color: rgb(var(--black));
-				line-height: 1.2;
+				font-size: 1.25rem;
+				line-height: 1.4;
+				word-break: break-word;
+				overflow-wrap: anywhere;
 			}
 			.date {
 				margin: 0.5rem 0 0;
@@ -87,7 +91,7 @@ const posts = (await getCollection('blog')).sort(
 					margin-bottom: 0;
 				}
 				ul li:first-child .title {
-					font-size: 1.563rem;
+					font-size: 1.4rem;
 				}
 			}
 		</style>
@@ -102,7 +106,11 @@ const posts = (await getCollection('blog')).sort(
 							<li>
 								<a href={`/sfsg/blog/${post.slug || post.id}/`}>
 									{post.data.heroImage && (
-										<Image width={720} height={360} src={post.data.heroImage} alt="" />
+										typeof post.data.heroImage === 'string' ? (
+											<img width={720} height={360} src={post.data.heroImage} alt="" />
+										) : (
+											<Image width={720} height={360} src={post.data.heroImage} alt="" />
+										)
 									)}
 									<h4 class="title">{post.data.title}</h4>
 									<p class="date">
