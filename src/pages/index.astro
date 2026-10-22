@@ -1,16 +1,8 @@
 ---
-import { getCollection } from 'astro:content';
-import { Image } from 'astro:assets';
 import BaseHead from '../components/BaseHead.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
-import FormattedDate from '../components/FormattedDate.astro';
 import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
-
-// 最新の記事を数件（ここでは最新3件）取得
-const posts = (await getCollection('blog'))
-	.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
-	.slice(0, 3);
 ---
 
 <!doctype html>
@@ -24,83 +16,44 @@ const posts = (await getCollection('blog'))
 				margin: 0 auto;
 				padding: 3rem 1rem;
 				box-sizing: border-box;
-			}
-			.hero {
-				text-align: center;
-				padding: 2rem 0 3rem 0;
-			}
-			.hero h1 {
-				font-size: clamp(2rem, 6vw, 3rem);
-				line-height: 1.2;
-				margin-bottom: 0.5rem;
-				word-break: break-word;
-			}
-			.hero p {
-				color: rgb(var(--gray));
-				font-size: 1.1rem;
-				margin: 0;
-			}
-			.recent-posts h2 {
-				font-size: 1.5rem;
-				border-bottom: 2px solid #e2e8f0;
-				padding-bottom: 0.5rem;
-				margin-bottom: 1.5rem;
-			}
-			ul {
-				list-style-type: none;
-				padding: 0;
-				margin: 0;
 				display: flex;
 				flex-direction: column;
-				gap: 1.5rem;
+				align-items: center;
+				justify-content: center;
+				text-align: center;
 			}
-			li a {
-				display: flex;
-				justify-content: space-between;
-				align-items: baseline;
-				text-decoration: none;
-				gap: 1rem;
-				padding: 0.5rem;
-				border-radius: 8px;
-				transition: background 0.2s ease;
+			.hero-image {
+				max-width: 100%;
+				height: auto;
+				margin-bottom: 2rem;
 			}
-			li a:hover {
-				background: rgba(var(--gray-light), 0.5);
+			.hero-image img {
+				max-width: 100%;
+				height: auto;
+				display: block;
+				margin: 0 auto;
 			}
-			.post-title {
+			h1 {
+				font-size: clamp(2rem, 6vw, 3.2rem);
+				line-height: 1.2;
+				margin: 0 0 0.5rem 0;
 				color: rgb(var(--black));
-				font-size: 1.1rem;
-				font-weight: 500;
 				word-break: break-word;
+				overflow-wrap: anywhere;
 			}
-			li a:hover .post-title {
-				color: #185A8C;
-			}
-			.post-date {
+			p.subtitle {
+				font-size: clamp(1rem, 3.5vw, 1.4rem);
 				color: rgb(var(--gray));
-				font-size: 0.9rem;
-				white-space: nowrap;
-			}
-			.view-all {
-				display: inline-block;
-				margin-top: 2rem;
-				text-decoration: none;
-				color: #185A8C;
-				font-weight: 600;
-			}
-			.view-all:hover {
-				text-decoration: underline;
+				margin: 0;
+				word-break: break-word;
+				overflow-wrap: anywhere;
 			}
 			@media (max-width: 720px) {
 				main {
-					padding: 1.5rem 1rem;
+					padding: 2rem 1rem;
 				}
-				.hero {
-					padding: 1.5rem 0 2rem 0;
-				}
-				li a {
-					flex-direction: column;
-					gap: 0.25rem;
+				.hero-image {
+					margin-bottom: 1.5rem;
 				}
 			}
 		</style>
@@ -108,29 +61,11 @@ const posts = (await getCollection('blog'))
 	<body>
 		<Header />
 		<main>
-			<section class="hero">
-				<h1>SFSG</h1>
-				<p>Something Fun is Something Good</p>
-			</section>
-
-			<section class="recent-posts">
-				<h2>Recent Posts</h2>
-				<ul>
-					{
-						posts.map((post) => (
-							<li>
-								<a href={`/sfsg/blog/${post.slug || post.id}/`}>
-									<span class="post-title">{post.data.title}</span>
-									<span class="post-date">
-										<FormattedDate date={post.data.pubDate} />
-									</span>
-								</a>
-							</li>
-						))
-					}
-				</ul>
-				<a href="/sfsg/blog/" class="view-all">すべての記事を見る →</a>
-			</section>
+			<div class="hero-image">
+				<img src="/sfsg/komaru_sleep_large.png" alt="SFSG" width="400" height="400" />
+			</div>
+			<h1>SFSG</h1>
+			<p class="subtitle">Something Fun is Something Good</p>
 		</main>
 		<Footer />
 	</body>
