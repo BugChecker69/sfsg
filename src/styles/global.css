@@ -121,7 +121,19 @@ hr {
 		padding: 1em;
 	}
 }
+html, body {
+	max-width: 100%;
+	overflow-x: hidden;
+}
 
+*, *:before, *:after {
+	box-sizing: border-box;
+}
+
+img {
+	max-width: 100%;
+	height: auto;
+}
 .sr-only {
 	border: 0;
 	padding: 0;
