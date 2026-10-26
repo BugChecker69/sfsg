@@ -108,23 +108,30 @@ const posts = (await getCollection('blog')).sort(
 			<section>
 				<ul>
 					{
-						posts.map((post) => (
-							<li>
-								<a href={`${import.meta.env.BASE_URL}blog/${post.id}/`}>
-									{post.data.heroImage && (
-										typeof post.data.heroImage === 'string' ? (
-											<img width={720} height={360} src={post.data.heroImage} alt="" />
-										) : (
-											<Image width={720} height={360} src={post.data.heroImage} alt="" />
-										)
-									)}
-									<h4 class="title">{post.data.title}</h4>
-									<p class="date">
-										<FormattedDate date={post.data.pubDate} />
-									</p>
-								</a>
-							</li>
-						))
+						posts.map((post) => {
+							// heroImageのパスをBASE_URLに合わせる処理
+							let heroImg = post.data.heroImage;
+							if (typeof heroImg === 'string' && heroImg.startsWith('./')) {
+								heroImg = `${import.meta.env.BASE_URL}blog/${heroImg.replace('./', '')}`;
+							}
+							return (
+								<li>
+									<a href={`${import.meta.env.BASE_URL}blog/${post.id}/`}>
+										{heroImg && (
+											typeof heroImg === 'string' ? (
+												<img width={720} height={360} src={heroImg} alt="" />
+											) : (
+												<Image width={720} height={360} src={heroImg} alt="" />
+											)
+										)}
+										<h4 class="title">{post.data.title}</h4>
+										<p class="date">
+											<FormattedDate date={post.data.pubDate} />
+										</p>
+									</a>
+								</li>
+							);
+						})
 					}
 				</ul>
 			</section>
