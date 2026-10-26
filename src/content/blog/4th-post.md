@@ -2,7 +2,7 @@
 title: '「ライアン鈴木」の動画を見て、国や言葉を越えて心を通わせる力について考えてみた'
 description: 'YouTubeチャンネル「ライアン鈴木【英語エンタメチャンネル】」の魅力と、国境や言葉を越えて交わされる等身大のコミュニケーションがもたらす心の琴線に触れる力についての考察。'
 pubDate: '2026-10-24'
-heroImage: './ryan-suzuki-channel.jpeg'
+heroImage: '/sfsg/ryan-suzuki-channel.jpeg'
 ---
 
 I-BO（アイボー）です。
