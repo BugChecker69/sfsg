@@ -1,13 +1,13 @@
 ---
 import { getCollection } from 'astro:content';
-import BaseLayout from '../../layouts/BaseLayout.tsx'; // 既存のレイアウトパスに合わせて調整
+import BlogPost from '../../layouts/BlogPost.astro';
 
 const albums = (await getCollection('album')).sort(
 	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
 );
 ---
 
-<BaseLayout title="Album" description="写真と記録のアルバム">
+<BlogPost title="Album" description="写真と記録のアルバム">
 	<main class="max-w-6xl mx-auto px-4 py-8">
 		<h1 class="text-3xl font-bold mb-8">Album</h1>
 		<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
@@ -37,4 +37,4 @@ const albums = (await getCollection('album')).sort(
 			}
 		</div>
 	</main>
-</BaseLayout>
+</BlogPost>
