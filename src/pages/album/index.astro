@@ -1,5 +1,6 @@
 ---
 import { getCollection } from 'astro:content';
+import { Image } from 'astro:assets';
 import BaseHead from '../../components/BaseHead.astro';
 import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
@@ -13,42 +14,167 @@ const albums = (await getCollection('album')).sort(
 <!doctype html>
 <html lang="ja">
 	<head>
-		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+		<BaseHead title={`Album - ${SITE_TITLE}`} description={SITE_DESCRIPTION} />
+		<style>
+			main {
+				width: 960px;
+				max-width: calc(100% - 2rem);
+				margin: 0 auto;
+				padding: 3rem 1rem;
+				box-sizing: border-box;
+			}
+			.album-grid {
+				display: grid;
+				grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+				gap: 1.5rem;
+				list-style-type: none;
+				margin: 0;
+				padding: 0;
+			}
+			.album-item {
+				background: #fff;
+				border-radius: 12px;
+				overflow: hidden;
+				box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+				transition: transform 0.2s ease, box-shadow 0.2s ease;
+				cursor: pointer;
+			}
+			.album-item:hover {
+				transform: translateY(-4px);
+				box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+			}
+			.album-thumb {
+				width: 100%;
+				height: 160px;
+				object-fit: cover;
+				display: block;
+			}
+			.album-info {
+				padding: 1rem;
+			}
+			.album-title {
+				font-size: 1rem;
+				margin: 0 0 0.5rem 0;
+				color: rgb(var(--black));
+			}
+			.album-date {
+				font-size: 0.85rem;
+				color: rgb(var(--gray));
+				margin: 0;
+			}
+
+			/* モーダル（拡大表示）のスタイル */
+			dialog {
+				border: none;
+				border-radius: 16px;
+				padding: 1.5rem;
+				max-width: 90vw;
+				max-height: 90vh;
+				background: #fff;
+				box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+			}
+			dialog::backdrop {
+				background: rgba(0, 0, 0, 0.6);
+			}
+			.modal-content {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				gap: 1rem;
+			}
+			.modal-image {
+				max-width: 100%;
+				max-height: 70vh;
+				object-fit: contain;
+				border-radius: 8px;
+			}
+			.close-btn {
+				background: #333;
+				color: #fff;
+				border: none;
+				padding: 0.5rem 1.5rem;
+				border-radius: 8px;
+				cursor: pointer;
+				font-size: 0.9rem;
+			}
+			.close-btn:hover {
+				background: #555;
+			}
+		</style>
 	</head>
 	<body>
 		<Header />
-		<main class="max-w-6xl mx-auto px-4 py-8">
-			<h1 class="text-3xl font-bold mb-8">Album</h1>
-			<ul class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 list-none p-0 m-0">
+		<main>
+			<h2>Album</h2>
+			<ul class="album-grid">
 				{
-					albums.map((album) => (
-						<li class="bg-white rounded-lg overflow-hidden shadow border border-gray-100 flex flex-col">
-							<a href={`${import.meta.env.BASE_URL}album/${album.id}/`} class="group block">
-								{album.data.heroImage && (
-									<div class="aspect-video overflow-hidden bg-gray-100">
-										<img 
-											src={album.data.heroImage} 
-											alt=""
-											class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-										/>
-									</div>
+					albums.map((album, index) => {
+						let heroImg = album.data.heroImage;
+						if (typeof heroImg === 'string') {
+							if (heroImg.startsWith('./')) {
+								heroImg = `${import.meta.env.BASE_URL}album/${heroImg.replace('./', '')}`;
+							} else if (!heroImg.startsWith('http') && !heroImg.startsWith('/sfsg/')) {
+								heroImg = `${import.meta.env.BASE_URL}${heroImg.replace(/^\//, '')}`;
+							}
+						}
+						return (
+							<li class="album-item" onclick={`openModal('${heroImg}', '${album.data.title}')`}>
+								{heroImg && (
+									typeof heroImg === 'string' ? (
+										<img class="album-thumb" width={400} height={300} src={heroImg} alt={album.data.title} />
+									) : (
+										<Image class="album-thumb" width={400} height={300} src={heroImg} alt={album.data.title} />
+									)
 								)}
-								<div class="p-4">
-									<p class="text-xs text-gray-500 mb-1">
-										<time datetime={album.data.pubDate.toISOString()}>
-											{album.data.pubDate.toLocaleDateString('ja-JP')}
-										</time>
-										{album.data.location && ` / ${album.data.location}`}
-									</p>
-									<h2 class="font-bold text-lg text-gray-900 group-hover:text-blue-600 transition-colors m-0">
-										{album.data.title}
-									</h2>
+								<div class="album-info">
+									<h3 class="album-title">{album.data.title}</h3>
+									<p class="album-date">{album.data.pubDate.toLocaleDateString()}</p>
 								</div>
-							</a>
-						</li>
-					))
+							</li>
+						);
+					})
 				}
 			</ul>
+
+			<!-- 拡大表示用モーダル -->
+			<dialog id="imageModal">
+				<div class="modal-content">
+					<img id="modalImg" class="modal-image" src="" alt="" />
+					<h3 id="modalTitle" style="margin: 0; font-size: 1.1rem;"></h3>
+					<button class="close-btn" onclick="closeModal()">閉じる</button>
+				</div>
+			</dialog>
+
+			<script is:inline>
+				function openModal(imgSrc, title) {
+					const modal = document.getElementById('imageModal');
+					const modalImg = document.getElementById('modalImg');
+					const modalTitle = document.getElementById('modalTitle');
+					
+					modalImg.src = imgSrc;
+					modalTitle.textContent = title;
+					modal.showModal();
+				}
+
+				function closeModal() {
+					const modal = document.getElementById('imageModal');
+					modal.close();
+				}
+
+				// モーダルの背景をクリックしたときに閉じる
+				const modal = document.getElementById('imageModal');
+				modal?.addEventListener('click', (event) => {
+					const rect = modal.getBoundingClientRect();
+					if (
+						event.clientX < rect.left ||
+						event.clientX > rect.right ||
+						event.clientY < rect.top ||
+						event.clientY > rect.bottom
+					) {
+						modal.close();
+					}
+				});
+			</script>
 		</main>
 		<Footer />
 	</body>
