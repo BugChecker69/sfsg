@@ -121,7 +121,7 @@ const albums = (await getCollection('album')).sort(
 						const safeTitle = (album.data.title || '').replace(/'/g, "\\'");
 						const safeDesc = (album.data.description || '').replace(/'/g, "\\'");
 						return (
-							<li class="album-item" onclick={`openModal('${heroImg}', '${safeTitle}', '${safeDesc}')`}>
+							<li class="album-item" id={album.id} onclick={`openModal('${heroImg}', '${safeTitle}', '${safeDesc}')`}>
 								{heroImg && (
 									typeof heroImg === 'string' ? (
 										<img class="album-thumb" width={400} height={300} src={heroImg} alt={album.data.title} />
@@ -177,6 +177,17 @@ const albums = (await getCollection('album')).sort(
 						event.clientY > rect.bottom
 					) {
 						modal.close();
+					}
+				});
+
+				window.addEventListener('DOMContentLoaded', () => {
+					const hash = window.location.hash;
+					if (hash) {
+						const targetId = hash.replace('#', '');
+						const targetItem = document.getElementById(targetId);
+						if (targetItem) {
+							targetItem.click();
+						}
 					}
 				});
 			</script>
