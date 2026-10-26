@@ -1,6 +1,6 @@
 ---
 import { getCollection } from 'astro:content';
-import BaseLayout from '../../layouts/BaseLayout.astro'; // または適切な共通レイアウト
+import BaseLayout from '../../layouts/BaseLayout.astro';
 
 const albums = (await getCollection('album')).sort(
 	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
