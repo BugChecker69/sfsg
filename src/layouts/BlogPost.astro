@@ -9,6 +9,15 @@ import FormattedDate from '../components/FormattedDate.astro';
 type Props = CollectionEntry<'blog'>['data'] | CollectionEntry<'album'>['data'];
 
 const { title, description, pubDate, updatedDate, heroImage, location } = Astro.props as any;
+
+let resolvedHeroImage = heroImage;
+if (typeof resolvedHeroImage === 'string') {
+	if (resolvedHeroImage.startsWith('./')) {
+		resolvedHeroImage = `${import.meta.env.BASE_URL}blog/${resolvedHeroImage.replace('./', '')}`;
+	} else if (!resolvedHeroImage.startsWith('http') && !resolvedHeroImage.startsWith('/sfsg/')) {
+		resolvedHeroImage = `${import.meta.env.BASE_URL}${resolvedHeroImage.replace(/^\//, '')}`;
+	}
+}
 ---
 
 <html lang="ja">
@@ -128,12 +137,12 @@ const { title, description, pubDate, updatedDate, heroImage, location } = Astro.
 		<Header />
 		<main>
 			<article>
-				{heroImage && (
+				{resolvedHeroImage && (
 					<div class="hero-image">
-						{typeof heroImage === 'string' ? (
-							<img width={1020} height={510} src={heroImage} alt="" />
+						{typeof resolvedHeroImage === 'string' ? (
+							<img width={1020} height={510} src={resolvedHeroImage} alt="" />
 						) : (
-							<Image width={1020} height={510} src={heroImage} alt="" />
+							<Image width={1020} height={510} src={resolvedHeroImage} alt="" />
 						)}
 					</div>
 				)}
