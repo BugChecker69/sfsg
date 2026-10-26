@@ -13,7 +13,7 @@ const albums = (await getCollection('album')).sort(
 		<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
 			{
 				albums.map((album) => (
-					<a href={`/album/${album.id}/`} class="group block bg-white rounded-lg overflow-hidden shadow hover:shadow-lg transition-shadow">
+					<a href={`/sfsg/album/${album.id}/`} class="group block bg-white rounded-lg overflow-hidden shadow hover:shadow-lg transition-shadow">
 						{album.data.heroImage && (
 							<div class="aspect-4/3 overflow-hidden bg-gray-100">
 								<img 
