@@ -1,0 +1,39 @@
+---
+import { type CollectionEntry, getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.tsx'; // 既存のレイアウトパスに合わせて調整
+import { render } from 'astro:content';
+
+export async function getStaticPaths() {
+	const albums = await getCollection('album');
+	return albums.map((album) => ({
+		params: { slug: album.id },
+		props: album,
+	}));
+}
+
+type Props = CollectionEntry<'album'>;
+
+const album = Astro.props;
+const { Content } = await render(album);
+---
+
+<BaseLayout title={album.data.title} description={album.data.description}>
+	<main class="max-w-3xl mx-auto px-4 py-8">
+		<a href="/album/" class="text-sm text-blue-600 hover:underline mb-4 inline-block">&larr; アルバム一覧に戻る</a>
+		<article>
+			<header class="mb-6">
+				<p class="text-sm text-gray-500 mb-2">
+					{album.data.pubDate.toLocaleDateString('ja-JP')}
+					{album.data.location && ` / ${album.data.location}`}
+				</p>
+				<h1 class="text-3xl font-bold mb-4">{album.data.title}</h1>
+				{album.data.heroImage && (
+					<img src={album.data.heroImage} alt={album.data.title} class="w-full rounded-lg shadow-md mb-6" />
+				)}
+			</header>
+			<div class="prose max-w-none">
+				<Content />
+			</div>
+		</article>
+	</main>
+</BaseLayout>
