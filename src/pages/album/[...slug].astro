@@ -1,23 +1,24 @@
 ---
-import { type CollectionEntry, getCollection } from 'astro:content';
+import { getCollection, render } from 'astro:content';
 import BlogPost from '../../layouts/BlogPost.astro';
-import { render } from 'astro:content';
 
 export async function getStaticPaths() {
 	const albums = await getCollection('album');
 	return albums.map((album) => ({
 		params: { slug: album.id },
-		props: album,
+		props: { album },
 	}));
 }
 
-type Props = CollectionEntry<'album'>;
-
-const album = Astro.props;
+const { album } = Astro.props;
 const { Content } = await render(album);
 ---
 
-<BlogPost title={album.data.title} description={album.data.description} pubDate={album.data.pubDate} heroImage={album.data.heroImage} location={album.data.location}>
-	<a href="/album/" class="text-sm text-blue-600 hover:underline mb-4 inline-block">&larr; アルバム一覧に戻る</a>
+<BlogPost
+	title={album.data.title}
+	description={album.data.description || ''}
+	pubDate={album.data.pubDate}
+	heroImage={album.data.heroImage}
+>
 	<Content />
 </BlogPost>
