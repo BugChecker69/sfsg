@@ -1,7 +1,7 @@
 ---
-title: "こんなの見つけた（テスト）"
-pubDate: 2026-06-20
+title: "13年前の硬券"
+pubDate: 2026-10-20
 location: "東京都葛飾区"
-heroImage: "/sfsg/5poses_a.webp"
-description: "歩いていたら、街中で発見！（テスト）"
+heroImage: "/sfsg/photo0001.webp"
+description: "交通系ICカード導入されてから利用は大幅に減っているとか。"
 ---
