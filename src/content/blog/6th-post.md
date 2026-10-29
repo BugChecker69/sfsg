@@ -5,6 +5,8 @@ heroImage: /sfsg/blog-placeholder-1.png
 description: "Google Earth StudioとPythonを活用して、GPSログからRelive風の3Dバイク走行ムービーを自作する実験の記録。"
 ---
 
+I-BO（アイボー）です。
+
 Google Earth StudioとPythonを用いて、GPSログデータを基にしたRelive風の3Dバイク走行ムービーを自作する実験を行ってみた。
 
 ## 制作の背景と概要
