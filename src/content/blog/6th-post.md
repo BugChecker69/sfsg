@@ -1,5 +1,5 @@
 ---
-title: "【実験】Google Earth Studio × Pythonで自作するRelive風バイク走行ムービーを作ってみた"
+title: "【実験】Google Earth Studio × PythonでRelive風バイク走行ムービーを作ってみた"
 pubDate: 2026-10-28
 heroImage: /sfsg/blog-placeholder-1.png
 description: "Google Earth StudioとPythonを活用して、GPSログからRelive風の3Dバイク走行ムービーを自作する実験の記録。"
