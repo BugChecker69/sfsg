@@ -1,0 +1,199 @@
+---
+import BaseHead from '../../components/BaseHead.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { getCollection } from 'astro:content';
+
+// ページネーション用のパスを生成
+export async function getStaticPaths({ paginate }) {
+  const posts = await getCollection('blog');
+  // 日付の新しい順にソート
+  posts.sort((a, b) => new Date(b.data.pubDate).valueOf() - new Date(a.data.pubDate).valueOf());
+
+  // 最新の1件を除外（または最新を含めたい場合は slice(1) を外してください）
+  const olderPosts = posts.slice(1);
+
+  // 1ページあたり10件で分割
+  return paginate(olderPosts, { pageSize: 10 });
+}
+
+const { page } = Astro.props;
+
+// 最新の1件を取得するため、全件から再度ソートして先頭を取得
+const allPosts = await getCollection('blog');
+allPosts.sort((a, b) => new Date(b.data.pubDate).valueOf() - new Date(a.data.pubDate).valueOf());
+const latestPost = allPosts[0];
+---
+
+<!doctype html>
+<html lang="ja">
+	<head>
+		<BaseHead title={`ブログ記事一覧 (ページ ${page.currentPage}) - SFSG`} description="SFSGのブログ記事一覧です。" />
+	</head>
+	<body>
+		<Header />
+		<main class="main-container">
+			<h1 class="page-title">Blog</h1>
+			<p class="page-desc">日々の開発記録や技術・雑記を発信しています。</p>
+
+			{/* 1ページ目のみ、最新の1件を特別に大きく表示する例 */}
+			{page.currentPage === 1 && latestPost && (
+				<section class="latest-section">
+					<h2>最新の投稿</h2>
+					<article class="latest-card">
+						<a href={`/sfsg/blog/${latestPost.slug}/`}>
+							{latestPost.data.heroImage && (
+								<img src={latestPost.data.heroImage} alt={latestPost.data.title} class="latest-img" />
+							)}
+							<div class="latest-content">
+								<time datetime={latestPost.data.pubDate.toISOString()}>
+									{latestPost.data.pubDate.toLocaleDateString('ja-JP')}
+								</time>
+								<h3>{latestPost.data.title}</h3>
+								<p>{latestPost.data.description}</p>
+							</div>
+						</a>
+					</article>
+				</section>
+			)}
+
+			{/* 過去記事のリスト（10件ずつ） */}
+			<section class="posts-section">
+				<h2>{page.currentPage === 1 ? '過去の投稿' : `記事一覧 (ページ ${page.currentPage})`}</h2>
+				<div class="posts-grid">
+					{page.data.map((post) => (
+						<article class="post-card">
+							<a href={`/sfsg/blog/${post.slug}/`}>
+								{post.data.heroImage && (
+									<img src={post.data.heroImage} alt={post.data.title} class="post-img" />
+								)}
+								<div class="post-content">
+									<time datetime={post.data.pubDate.toISOString()}>
+										{post.data.pubDate.toLocaleDateString('ja-JP')}
+									</time>
+									<h3>{post.data.title}</h3>
+									<p>{post.data.description}</p>
+								</div>
+							</a>
+						</article>
+					))}
+				</div>
+			</section>
+
+			{/* ページネーションコントロール（ページ番号を指定して開ける仕組み） */}
+			<nav class="pagination" aria-label="ページネーション">
+				{page.url.prev ? (
+					<a href={page.url.prev} class="page-btn">← 前のページ</a>
+				) : (
+					<span class="page-btn disabled">← 前のページ</span>
+				)}
+
+				<span class="page-info">
+					{page.currentPage} / {page.lastPage} ページ
+				</span>
+
+				{page.url.next ? (
+					<a href={page.url.next} class="page-btn">次のページ →</a>
+				) : (
+					<span class="page-btn disabled">次のページ →</span>
+				)}
+			</nav>
+		</main>
+		<Footer />
+
+		<style>
+			.main-container {
+				max-width: 900px;
+				width: 100%;
+				margin: 0 auto;
+				padding: 3rem 1.5rem;
+			}
+			.page-title {
+				font-size: 1.75rem;
+				font-weight: 700;
+				margin-bottom: 0.5rem;
+			}
+			.page-desc {
+				font-size: 0.875rem;
+				color: #64748b;
+				margin-bottom: 2rem;
+			}
+			h2 {
+				font-size: 1.25rem;
+				font-weight: 600;
+				margin-bottom: 1rem;
+				border-bottom: 2px solid #e2e8f0;
+				padding-bottom: 0.5rem;
+			}
+			.latest-section, .posts-section {
+				margin-bottom: 3rem;
+			}
+			.latest-card, .post-card {
+				background: #ffffff;
+				border: 1px solid #e2e8f0;
+				border-radius: 0.75rem;
+				overflow: hidden;
+				transition: transform 0.2s, box-shadow 0.2s;
+			}
+			.latest-card:hover, .post-card:hover {
+				transform: translateY(-2px);
+				box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+			}
+			.latest-card a, .post-card a {
+				text-decoration: none;
+				color: inherit;
+				display: block;
+			}
+			.latest-img {
+				width: 100%;
+				height: 300px;
+				object-fit: cover;
+			}
+			.latest-content, .post-content {
+				padding: 1.5rem;
+			}
+			.posts-grid {
+				display: grid;
+				grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+				gap: 1.5rem;
+			}
+			.post-img {
+				width: 100%;
+				height: 160px;
+				object-fit: cover;
+			}
+			time {
+				font-size: 0.75rem;
+				color: #64748b;
+			}
+			.pagination {
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				gap: 1rem;
+				margin-top: 3rem;
+			}
+			.page-btn {
+				padding: 0.5rem 1rem;
+				font-size: 0.875rem;
+				font-weight: 500;
+				background-color: #ffffff;
+				border: 1px solid #cbd5e1;
+				border-radius: 0.375rem;
+				color: #0f172a;
+				text-decoration: none;
+			}
+			.page-btn:hover:not(.disabled) {
+				background-color: #f1f5f9;
+			}
+			.page-btn.disabled {
+				opacity: 0.5;
+				pointer-events: none;
+			}
+			.page-info {
+				font-size: 0.875rem;
+				color: #64748b;
+			}
+		</style>
+	</body>
+</html>
