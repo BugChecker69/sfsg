@@ -16,7 +16,10 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../../consts';
 			<a href="/sfsg/tools" class="back-link"><i class="fa-solid fa-arrow-left"></i> Toolsに戻る</a>
 			
 			<h1 class="page-title">画像加工ツール</h1>
-			<p class="page-desc">拡張子変更・サイズ変更・トリミング・選択箇所モザイク処理（長辺2048px超は自動縮小保護）</p>
+			<p class="page-desc">
+				拡張子変更・サイズ変更・トリミング・選択箇所モザイク処理（長辺2048px超は自動縮小保護）<br>
+				<span style="font-size: 0.75rem; color: #64748b;">ブラウザの種類・バージョンによっては正常に使用できない場合があります</span>
+			</p>
 
 			<div class="card" id="uploadCard">
 				<div class="card-title"><i class="fa-solid fa-upload"></i> 画像の選択</div>
@@ -35,6 +38,16 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../../consts';
 						<button type="button" class="btn-mode active" id="modeMosaicBtn" onclick="setMode('mosaic')"><i class="fa-solid fa-border-all"></i> モザイク処理</button>
 						<button type="button" class="btn-mode" id="modeCropBtn" onclick="setMode('crop')"><i class="fa-solid fa-crop"></i> トリミング（切り抜き）</button>
 					</div>
+
+					<!-- トリミング比率選択（トリミングモード時のみ表示） -->
+					<div id="cropAspectContainer" class="hidden" style="margin-bottom: 1rem;">
+						<label style="display: block; font-size: 0.8125rem; font-weight: 600; color: #475569; margin-bottom: 0.375rem;">トリミング比率</label>
+						<div style="display: flex; gap: 0.5rem;">
+							<button type="button" class="btn-aspect active" onclick="setAspect('free')">フリー</button>
+							<button type="button" class="btn-aspect" onclick="setAspect('16:9')">16:9</button>
+							<button type="button" class="btn-aspect" onclick="setAspect('4:3')">4:3</button>
+						</div>
+					</div>
 					
 					<div class="helper-text" id="modeHelper" style="margin-bottom: 0.75rem;">画像上でドラッグした矩形範囲にモザイクを適用できます。</div>
 					<div class="canvas-container">
@@ -42,6 +55,7 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../../consts';
 					</div>
 					<div style="margin-top: 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
 						<button type="button" class="btn btn-secondary" id="resetMosaicBtn" style="width: auto; padding: 0.5rem 1rem; font-size: 0.8125rem;">モザイクをリセット</button>
+						<button type="button" class="btn btn-secondary" id="executeCropBtn" style="width: auto; padding: 0.5rem 1rem; font-size: 0.8125rem; display: none; background-color: #2563eb; color: #fff;" onclick="executeCrop()">この範囲で切り抜く</button>
 						<button type="button" class="btn btn-secondary" id="resetCropBtn" style="width: auto; padding: 0.5rem 1rem; font-size: 0.8125rem; display: none;" onclick="resetCrop()">トリミングを解除</button>
 					</div>
 				</div>
@@ -200,7 +214,7 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../../consts';
 			.btn-secondary:hover {
 				background-color: #cbd5e1;
 			}
-			.btn-mode {
+			.btn-mode, .btn-aspect {
 				flex: 1;
 				padding: 0.5rem 1rem;
 				font-size: 0.8125rem;
@@ -212,7 +226,7 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../../consts';
 				cursor: pointer;
 				transition: all 0.2s;
 			}
-			.btn-mode.active {
+			.btn-mode.active, .btn-aspect.active {
 				background-color: #0f172a;
 				color: #ffffff;
 				border-color: #0f172a;
@@ -240,11 +254,13 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../../consts';
 			const downloadBtn = document.getElementById('downloadBtn');
 			const resetMosaicBtn = document.getElementById('resetMosaicBtn');
 			const resetCropBtn = document.getElementById('resetCropBtn');
+			const executeCropBtn = document.getElementById('executeCropBtn');
 			const changeImageBtn = document.getElementById('changeImageBtn');
 
 			const modeMosaicBtn = document.getElementById('modeMosaicBtn');
 			const modeCropBtn = document.getElementById('modeCropBtn');
 			const modeHelper = document.getElementById('modeHelper');
+			const cropAspectContainer = document.getElementById('cropAspectContainer');
 
 			let originalImage = null;
 			let originalFileName = 'image';
@@ -256,9 +272,15 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../../consts';
 			let workCtx = workCanvas.getContext('2d', { willReadFrequently: true });
 
 			let currentMode = 'mosaic';
+			let cropAspect = 'free'; // 'free', '16:9', '4:3'
 			let isDragging = false;
+			let isMoving = false;
 			let startX = 0, startY = 0;
 			let currentX = 0, currentY = 0;
+
+			// トリミング枠 (image座標系)
+			let cropBox = { x: 0, y: 0, w: 0, h: 0 };
+			let dragOffset = { x: 0, y: 0 };
 
 			const MAX_DIMENSION = 2048;
 
@@ -269,11 +291,38 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../../consts';
 					modeCropBtn.classList.remove('active');
 					modeHelper.textContent = '画像上でドラッグした矩形範囲にモザイクを適用できます。';
 					resetMosaicBtn.style.display = 'inline-block';
+					cropAspectContainer.classList.add('hidden');
+					executeCropBtn.style.display = 'none';
 				} else {
 					modeCropBtn.classList.add('active');
 					modeMosaicBtn.classList.remove('active');
-					modeHelper.textContent = '画像上でドラッグして切り抜きたい範囲を選択してください。';
+					modeHelper.textContent = '画像上でドラッグして切り抜き範囲を指定、枠内をドラッグして移動できます。';
 					resetMosaicBtn.style.display = 'none';
+					cropAspectContainer.classList.remove('hidden');
+					executeCropBtn.style.display = 'inline-block';
+					
+					// 初期トリミング枠（中央に全体の60%サイズ）
+					if (cropBox.w === 0) {
+						cropBox.w = currentWidth * 0.6;
+						cropBox.h = cropAspect === '16:9' ? cropBox.w * (9/16) : cropAspect === '4:3' ? cropBox.w * (3/4) : currentHeight * 0.6;
+						cropBox.x = (currentWidth - cropBox.w) / 2;
+						cropBox.y = (currentHeight - cropBox.h) / 2;
+					}
+				}
+				redrawCanvas();
+			};
+
+			window.setAspect = function(aspect) {
+				cropAspect = aspect;
+				document.querySelectorAll('.btn-aspect').forEach(btn => btn.classList.remove('active'));
+				event.target.classList.add('active');
+
+				if (cropAspect === '16:9') {
+					cropBox.h = cropBox.w * (9 / 16);
+					if (cropBox.y + cropBox.h > currentHeight) cropBox.y = currentHeight - cropBox.h;
+				} else if (cropAspect === '4:3') {
+					cropBox.h = cropBox.w * (3 / 4);
+					if (cropBox.y + cropBox.h > currentHeight) cropBox.y = currentHeight - cropBox.h;
 				}
 				redrawCanvas();
 			};
@@ -320,6 +369,7 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../../consts';
 					resizeWidthInput.value = w;
 					resizeHeightInput.value = h;
 					resetCropBtn.style.display = 'none';
+					cropBox = { x: 0, y: 0, w: 0, h: 0 };
 
 					uploadCard.classList.add('hidden');
 					workspace.classList.remove('hidden');
@@ -341,8 +391,8 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../../consts';
 				ctx.clearRect(0, 0, currentWidth, currentHeight);
 				ctx.drawImage(workCanvas, 0, 0, currentWidth, currentHeight);
 
-				if (isDragging) {
-					ctx.strokeStyle = currentMode === 'mosaic' ? '#2563eb' : '#10b981';
+				if (currentMode === 'mosaic' && isDragging) {
+					ctx.strokeStyle = '#2563eb';
 					ctx.lineWidth = 2;
 					ctx.setLineDash([4, 4]);
 					ctx.strokeRect(
@@ -352,6 +402,23 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../../consts';
 						Math.abs(currentY - startY)
 					);
 					ctx.setLineDash([]);
+				} else if (currentMode === 'crop' && cropBox.w > 0) {
+					// 暗いオーバーレイ
+					ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+					ctx.fillRect(0, 0, currentWidth, currentHeight);
+
+					// 切り抜き枠内をクリア（元の画像を表示）
+					ctx.save();
+					ctx.beginPath();
+					ctx.rect(cropBox.x, cropBox.y, cropBox.w, cropBox.h);
+					ctx.clip();
+					ctx.drawImage(workCanvas, 0, 0, currentWidth, currentHeight);
+					ctx.restore();
+
+					// 枠線を描画
+					ctx.strokeStyle = '#ffffff';
+					ctx.lineWidth = 2;
+					ctx.strokeRect(cropBox.x, cropBox.y, cropBox.w, cropBox.h);
 				}
 			}
 
@@ -435,15 +502,12 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../../consts';
 				redrawCanvas();
 			}
 
-			function applyCrop(x1, y1, x2, y2) {
-				const minX = Math.max(0, Math.floor(Math.min(x1, x2)));
-				const minY = Math.max(0, Math.floor(Math.min(y1, y2)));
-				const maxX = Math.min(workCanvas.width, Math.ceil(Math.max(x1, x2)));
-				const maxY = Math.min(workCanvas.height, Math.ceil(Math.max(y1, y2)));
-
-				const w = maxX - minX;
-				const h = maxY - minY;
-				if (w < 10 || h < 10) return;
+			window.executeCrop = function() {
+				if (cropBox.w < 10 || cropBox.h < 10) return;
+				const minX = Math.max(0, Math.floor(cropBox.x));
+				const minY = Math.max(0, Math.floor(cropBox.y));
+				const w = Math.min(workCanvas.width - minX, Math.ceil(cropBox.w));
+				const h = Math.min(workCanvas.height - minY, Math.ceil(cropBox.h));
 
 				const croppedData = workCtx.getImageData(minX, minY, w, h);
 				
@@ -458,10 +522,11 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../../consts';
 				resizeWidthInput.value = w;
 				resizeHeightInput.value = h;
 				resetCropBtn.style.display = 'inline-block';
+				cropBox = { x: 0, y: 0, w: 0, h: 0 };
 
 				window.setMode('mosaic');
 				redrawCanvas();
-			}
+			};
 
 			window.resetCrop = function() {
 				if (!originalImage) return;
@@ -489,66 +554,157 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../../consts';
 				resizeWidthInput.value = w;
 				resizeHeightInput.value = h;
 				resetCropBtn.style.display = 'none';
+				cropBox = { x: 0, y: 0, w: 0, h: 0 };
 
 				redrawCanvas();
 			};
 
 			canvas.addEventListener('mousedown', (e) => {
-				isDragging = true;
 				const pt = getCanvasPoint(e);
-				startX = pt.x;
-				startY = pt.y;
-				currentX = startX;
-				currentY = startY;
-			});
-
-			canvas.addEventListener('mousemove', (e) => {
-				if (!isDragging) return;
-				const pt = getCanvasPoint(e);
-				currentX = pt.x;
-				currentY = pt.y;
-				redrawCanvas();
-			});
-
-			window.addEventListener('mouseup', () => {
-				if (!isDragging) return;
-				isDragging = false;
-				const x1 = startX, y1 = startY, x2 = currentX, y2 = currentY;
-				if (currentMode === 'mosaic') {
-					applyMosaic(x1, y1, x2, y2);
+				if (currentMode === 'crop') {
+					// 枠内をクリックした場合は移動（ドラッグ）開始、枠外なら新規作成
+					if (pt.x >= cropBox.x && pt.x <= cropBox.x + cropBox.w &&
+						pt.y >= cropBox.y && pt.y <= cropBox.y + cropBox.h) {
+						isMoving = true;
+						dragOffset.x = pt.x - cropBox.x;
+						dragOffset.y = pt.y - cropBox.y;
+					} else {
+						isDragging = true;
+						startX = pt.x;
+						startY = pt.y;
+						cropBox.x = startX;
+						cropBox.y = startY;
+						cropBox.w = 0;
+						cropBox.h = 0;
+					}
 				} else {
-					applyCrop(x1, y1, x2, y2);
+					isDragging = true;
+					startX = pt.x;
+					startY = pt.y;
+					currentX = startX;
+					currentY = startY;
 				}
 			});
 
-			canvas.addEventListener('touchstart', (e) => {
-				isDragging = true;
+			canvas.addEventListener('mousemove', (e) => {
 				const pt = getCanvasPoint(e);
-				startX = pt.x;
-				startY = pt.y;
-				currentX = startX;
-				currentY = startY;
+				if (currentMode === 'crop') {
+					if (isMoving) {
+						cropBox.x = Math.max(0, Math.min(currentWidth - cropBox.w, pt.x - dragOffset.x));
+						cropBox.y = Math.max(0, Math.min(currentHeight - cropBox.h, pt.y - dragOffset.y));
+						redrawCanvas();
+					} else if (isDragging) {
+						let w = pt.x - startX;
+						let h = pt.y - startY;
+
+						if (cropAspect === '16:9') {
+							h = w * (9 / 16);
+						} else if (cropAspect === '4:3') {
+							h = w * (3 / 4);
+						}
+
+						cropBox.x = w < 0 ? startX + w : startX;
+						cropBox.y = h < 0 ? startY + h : startY;
+						cropBox.w = Math.abs(w);
+						cropBox.h = Math.abs(h);
+
+						// 画面外にはみ出さないように制限
+						if (cropBox.x < 0) cropBox.x = 0;
+						if (cropBox.y < 0) cropBox.y = 0;
+						if (cropBox.x + cropBox.w > currentWidth) cropBox.w = currentWidth - cropBox.x;
+						if (cropBox.y + cropBox.h > currentHeight) cropBox.h = currentHeight - cropBox.y;
+
+						redrawCanvas();
+					}
+				} else {
+					if (!isDragging) return;
+					currentX = pt.x;
+					currentY = pt.y;
+					redrawCanvas();
+				}
+			});
+
+			window.addEventListener('mouseup', () => {
+				if (isDragging && currentMode === 'mosaic') {
+					isDragging = false;
+					applyMosaic(startX, startY, currentX, currentY);
+				}
+				isDragging = false;
+				isMoving = false;
+			});
+
+			canvas.addEventListener('touchstart', (e) => {
+				const pt = getCanvasPoint(e);
+				if (currentMode === 'crop') {
+					if (pt.x >= cropBox.x && pt.x <= cropBox.x + cropBox.w &&
+						pt.y >= cropBox.y && pt.y <= cropBox.y + cropBox.h) {
+						isMoving = true;
+						dragOffset.x = pt.x - cropBox.x;
+						dragOffset.y = pt.y - cropBox.y;
+					} else {
+						isDragging = true;
+						startX = pt.x;
+						startY = pt.y;
+						cropBox.x = startX;
+						cropBox.y = startY;
+						cropBox.w = 0;
+						cropBox.h = 0;
+					}
+				} else {
+					isDragging = true;
+					startX = pt.x;
+					startY = pt.y;
+					currentX = startX;
+					currentY = startY;
+				}
 				e.preventDefault();
 			}, { passive: false });
 
 			canvas.addEventListener('touchmove', (e) => {
-				if (!isDragging) return;
 				const pt = getCanvasPoint(e);
-				currentX = pt.x;
-				currentY = pt.y;
-				redrawCanvas();
+				if (currentMode === 'crop') {
+					if (isMoving) {
+						cropBox.x = Math.max(0, Math.min(currentWidth - cropBox.w, pt.x - dragOffset.x));
+						cropBox.y = Math.max(0, Math.min(currentHeight - cropBox.h, pt.y - dragOffset.y));
+						redrawCanvas();
+					} else if (isDragging) {
+						let w = pt.x - startX;
+						let h = pt.y - startY;
+
+						if (cropAspect === '16:9') {
+							h = w * (9 / 16);
+						} else if (cropAspect === '4:3') {
+							h = w * (3 / 4);
+						}
+
+						cropBox.x = w < 0 ? startX + w : startX;
+						cropBox.y = h < 0 ? startY + h : startY;
+						cropBox.w = Math.abs(w);
+						cropBox.h = Math.abs(h);
+
+						if (cropBox.x < 0) cropBox.x = 0;
+						if (cropBox.y < 0) cropBox.y = 0;
+						if (cropBox.x + cropBox.w > currentWidth) cropBox.w = currentWidth - cropBox.x;
+						if (cropBox.y + cropBox.h > currentHeight) cropBox.h = currentHeight - cropBox.y;
+
+						redrawCanvas();
+					}
+				} else {
+					if (!isDragging) return;
+					currentX = pt.x;
+					currentY = pt.y;
+					redrawCanvas();
+				}
 				e.preventDefault();
 			}, { passive: false });
 
 			window.addEventListener('touchend', (e) => {
-				if (!isDragging) return;
-				isDragging = false;
-				const x1 = startX, y1 = startY, x2 = currentX, y2 = currentY;
-				if (currentMode === 'mosaic') {
-					applyMosaic(x1, y1, x2, y2);
-				} else {
-					applyCrop(x1, y1, x2, y2);
+				if (isDragging && currentMode === 'mosaic') {
+					isDragging = false;
+					applyMosaic(startX, startY, currentX, currentY);
 				}
+				isDragging = false;
+				isMoving = false;
 			});
 
 			resetMosaicBtn.addEventListener('click', () => {
