@@ -1,3 +1,215 @@
 ---
-return Astro.redirect(`${import.meta.env.BASE_URL}blog/1/`);
+import { getCollection } from 'astro:content';
+import { Image } from 'astro:assets';
+import BaseHead from '../../components/BaseHead.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import FormattedDate from '../../components/FormattedDate.astro';
+import { SITE_TITLE, SITE_DESCRIPTION } from '../../consts';
+
+const posts = (await getCollection('blog')).sort(
+	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+);
+
+const latestPost = posts[0];
+const olderPosts = posts.slice(1, 11);
+const totalPages = Math.ceil((posts.length - 1) / 10);
+
+function resolveHeroImg(heroImg) {
+	if (typeof heroImg === 'string') {
+		if (heroImg.startsWith('./')) {
+			return `${import.meta.env.BASE_URL}blog/${heroImg.replace('./', '')}`;
+		} else if (!heroImg.startsWith('http') && !heroImg.startsWith('/sfsg/')) {
+			return `${import.meta.env.BASE_URL}${heroImg.replace(/^\//, '')}`;
+		}
+	}
+	return heroImg;
+}
 ---
+
+<!doctype html>
+<html lang="ja">
+	<head>
+		<BaseHead title={`Blog (ページ 1) - ${SITE_TITLE}`} description={SITE_DESCRIPTION} />
+		<style>
+			main {
+				width: 960px;
+				max-width: calc(100% - 2rem);
+				margin: 0 auto;
+				padding: 3rem 1rem;
+				box-sizing: border-box;
+			}
+			ul {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 2rem;
+				list-style-type: none;
+				margin: 0;
+				padding: 0;
+			}
+			ul li {
+				width: calc(50% - 1rem);
+				box-sizing: border-box;
+				text-align: left;
+			}
+			ul li * {
+				text-decoration: none;
+				transition: 0.2s ease;
+			}
+			.latest-item {
+				width: 100% !important;
+				margin-bottom: 2rem;
+				text-align: left;
+			}
+			.latest-item img {
+				width: 100%;
+			}
+			.latest-item .title {
+				font-size: clamp(1.4rem, 3vw, 1.8rem);
+				line-height: 1.35;
+			}
+			ul li img {
+				margin-bottom: 0.5rem;
+				border-radius: 12px;
+				height: auto;
+				max-width: 100%;
+			}
+			ul li a {
+				display: block;
+			}
+			.title {
+				margin: 0;
+				color: rgb(var(--black));
+				font-size: 1.25rem;
+				line-height: 1.4;
+				word-break: break-word;
+				overflow-wrap: anywhere;
+			}
+			.date {
+				margin: 0.5rem 0 0;
+				color: rgb(var(--gray));
+			}
+			ul li a:hover h4,
+			ul li a:hover .date {
+				color: #185A8C;
+			}
+			ul a:hover img {
+				box-shadow: var(--box-shadow);
+			}
+			.pagination {
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				gap: 1rem;
+				margin-top: 3rem;
+			}
+			.page-btn {
+				padding: 0.5rem 1rem;
+				font-size: 0.875rem;
+				font-weight: 500;
+				background-color: #ffffff;
+				border: 1px solid #cbd5e1;
+				border-radius: 0.375rem;
+				color: #0f172a;
+				text-decoration: none;
+			}
+			.page-btn:hover:not(.disabled) {
+				background-color: #f1f5f9;
+			}
+			.page-btn.disabled {
+				opacity: 0.5;
+				pointer-events: none;
+			}
+			.page-info {
+				font-size: 0.875rem;
+				color: rgb(var(--gray));
+			}
+			@media (max-width: 720px) {
+				main {
+					width: 100%;
+					padding: 2rem 1rem;
+				}
+				ul {
+					gap: 1.5rem;
+				}
+				ul li {
+					width: 100%;
+					text-align: left;
+				}
+				.latest-item {
+					margin-bottom: 0;
+				}
+				.latest-item .title {
+					font-size: 1.4rem;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<section>
+				<ul>
+					{latestPost && (() => {
+						let heroImg = resolveHeroImg(latestPost.data.heroImage);
+						return (
+							<li class="latest-item">
+								<a href={`${import.meta.env.BASE_URL}blog/${latestPost.id}/`}>
+									{heroImg && (
+										typeof heroImg === 'string' ? (
+											<img width={720} height={360} src={heroImg} alt="" />
+										) : (
+											<Image width={720} height={360} src={heroImg} alt="" />
+										)
+									)}
+									<h4 class="title">{latestPost.data.title}</h4>
+									<p class="date">
+										<FormattedDate date={latestPost.data.pubDate} />
+									</p>
+								</a>
+							</li>
+						);
+					})()}
+
+					{
+						olderPosts.map((post) => {
+							let heroImg = resolveHeroImg(post.data.heroImage);
+							return (
+								<li>
+									<a href={`${import.meta.env.BASE_URL}blog/${post.id}/`}>
+										{heroImg && (
+											typeof heroImg === 'string' ? (
+												<img width={720} height={360} src={heroImg} alt="" />
+											) : (
+												<Image width={720} height={360} src={heroImg} alt="" />
+											)
+										)}
+										<h4 class="title">{post.data.title}</h4>
+										<p class="date">
+											<FormattedDate date={post.data.pubDate} />
+										</p>
+									</a>
+								</li>
+							);
+						})
+					}
+				</ul>
+			</section>
+
+			<nav class="pagination" aria-label="ページネーション">
+				<span class="page-btn disabled">← 前のページ</span>
+
+				<span class="page-info">
+					1 / {totalPages > 0 ? totalPages : 1} ページ
+				</span>
+
+				{totalPages > 1 ? (
+					<a href={`${import.meta.env.BASE_URL}blog/2/`} class="page-btn">次のページ →</a>
+				) : (
+					<span class="page-btn disabled">次のページ →</span>
+				)}
+			</nav>
+		</main>
+		<Footer />
+	</body>
+</html>
