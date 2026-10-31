@@ -1,1 +1,98 @@
+---
+import { getCollection } from 'astro:content';
+import BaseHead from '../../components/BaseHead.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { SITE_TITLE, SITE_DESCRIPTION } from '../../consts';
 
+const posts = (await getCollection('album')).sort(
+	(a, b) => new Date(b.data.date).valueOf() - new Date(a.data.date).valueOf()
+);
+const pagePosts = posts.slice(0, 15);
+const totalPages = Math.ceil(posts.length / 15);
+---
+
+<!doctype html>
+<html lang="ja">
+	<head>
+		<BaseHead title={`Album (ページ 1) - ${SITE_TITLE}`} description={SITE_DESCRIPTION} />
+		<style>
+			main {
+				width: 960px;
+				max-width: calc(100% - 2rem);
+				margin: 0 auto;
+				padding: 3rem 1rem;
+				box-sizing: border-box;
+			}
+			.album-grid {
+				display: grid;
+				grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+				gap: 1.5rem;
+				margin: 0 0 3rem 0;
+				padding: 0;
+				list-style-type: none;
+			}
+			.album-item {
+				background: #ffffff;
+				border: 1px solid #e2e8f0;
+				border-radius: 0.5rem;
+				padding: 1rem;
+			}
+			.pagination {
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				gap: 1rem;
+			}
+			.page-btn {
+				padding: 0.5rem 1rem;
+				font-size: 0.875rem;
+				font-weight: 500;
+				background-color: #ffffff;
+				border: 1px solid #cbd5e1;
+				border-radius: 0.375rem;
+				color: #0f172a;
+				text-decoration: none;
+			}
+			.page-btn:hover:not(.disabled) {
+				background-color: #f1f5f9;
+			}
+			.page-btn.disabled {
+				opacity: 0.5;
+				pointer-events: none;
+			}
+			.page-info {
+				font-size: 0.875rem;
+				color: rgb(var(--gray));
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<h1>Album</h1>
+			<div class="album-grid">
+				{pagePosts.map((item) => (
+					<div class="album-item">
+						<h3>{item.data.title}</h3>
+					</div>
+				))}
+			</div>
+
+			<nav class="pagination" aria-label="ページネーション">
+				<span class="page-btn disabled">← 前のページ</span>
+
+				<span class="page-info">
+					1 / {totalPages > 0 ? totalPages : 1} ページ
+				</span>
+
+				{totalPages > 1 ? (
+					<a href={`${import.meta.env.BASE_URL}album/2/`} class="page-btn">次のページ →</a>
+				) : (
+					<span class="page-btn disabled">次のページ →</span>
+				)}
+			</nav>
+		</main>
+		<Footer />
+	</body>
+</html>
