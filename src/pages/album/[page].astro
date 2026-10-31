@@ -1,15 +1,15 @@
 ---
-import BaseHead import '../../components/BaseHead.astro';
+import { getCollection } from 'astro:content';
+import BaseHead from '../../components/BaseHead.astro';
 import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
 import { SITE_TITLE, SITE_DESCRIPTION } from '../../consts';
 
 export async function getStaticPaths({ paginate }) {
-  // すべての写真・アルバムデータを取得（例としてダミーの配列やコンテンツ取得を使用）
-  const allPhotos = [...]; // 写真データの配列
-  allPhotos.sort((a, b) => new Date(b.date).valueOf() - new Date(a.date).valueOf());
-
-  return paginate(allPhotos, { pageSize: 15 });
+	const posts = (await getCollection('album')).sort(
+		(a, b) => b.data.date.valueOf() - a.data.date.valueOf()
+	);
+	return paginate(posts, { pageSize: 15 });
 }
 
 const { page } = Astro.props;
@@ -19,24 +19,85 @@ const { page } = Astro.props;
 <html lang="ja">
 	<head>
 		<BaseHead title={`Album (ページ ${page.currentPage}) - ${SITE_TITLE}`} description={SITE_DESCRIPTION} />
+		<style>
+			main {
+				width: 960px;
+				max-width: calc(100% - 2rem);
+				margin: 0 auto;
+				padding: 3rem 1rem;
+				box-sizing: border-box;
+			}
+			.album-grid {
+				display: grid;
+				grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+				gap: 1.5rem;
+				margin: 0 0 3rem 0;
+				padding: 0;
+				list-style-type: none;
+			}
+			.album-item {
+				background: #ffffff;
+				border: 1px solid #e2e8f0;
+				border-radius: 0.5rem;
+				padding: 1rem;
+			}
+			.pagination {
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				gap: 1rem;
+			}
+			.page-btn {
+				padding: 0.5rem 1rem;
+				font-size: 0.875rem;
+				font-weight: 500;
+				background-color: #ffffff;
+				border: 1px solid #cbd5e1;
+				border-radius: 0.375rem;
+				color: #0f172a;
+				text-decoration: none;
+			}
+			.page-btn:hover:not(.disabled) {
+				background-color: #f1f5f9;
+			}
+			.page-btn.disabled {
+				opacity: 0.5;
+				pointer-events: none;
+			}
+			.page-info {
+				font-size: 0.875rem;
+				color: rgb(var(--gray));
+			}
+		</style>
 	</head>
 	<body>
 		<Header />
 		<main>
 			<h1>Album</h1>
 			<div class="album-grid">
-				{page.data.map((photo) => (
+				{page.data.map((item) => (
 					<div class="album-item">
-						<!-- 写真の表示要素 -->
+						<h3>{item.data.title}</h3>
 					</div>
 				))}
 			</div>
 
-			<!-- ページネーションUI -->
-			<nav class="pagination">
-				{page.url.prev ? <a href={page.url.prev}>← 前のページ</a> : <span class="disabled">← 前のページ</span>}
-				<span>{page.currentPage} / {page.lastPage}</span>
-				{page.url.next ? <a href={page.url.next}>次のページ →</a> : <span class="disabled">次のページ →</span>}
+			<nav class="pagination" aria-label="ページネーション">
+				{page.url.prev ? (
+					<a href={page.url.prev} class="page-btn">← 前のページ</a>
+				) : (
+					<span class="page-btn disabled">← 前のページ</span>
+				)}
+
+				<span class="page-info">
+					{page.currentPage} / {page.lastPage} ページ
+				</span>
+
+				{page.url.next ? (
+					<a href={page.url.next} class="page-btn">次のページ →</a>
+				) : (
+					<span class="page-btn disabled">次のページ →</span>
+				)}
 			</nav>
 		</main>
 		<Footer />
