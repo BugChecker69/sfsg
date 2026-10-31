@@ -11,22 +11,30 @@ import Footer from '../../components/Footer.astro';
 	</head>
 	<body>
 		<Header />
-		<main style="max-width: 800px; width: 100%; margin: 0 auto; padding: 2.5rem 1rem;">
+		<main>
 			<h1 class="page-title">Tools</h1>
-			<p class="page-desc">公開しているツールの一覧</p>
+			<p class="page-desc">ブラウザ上で完結するプライバシー配慮型の便利ツール集</p>
 
-			<div class="tool-grid">
+			<div class="tools-grid">
 				<a href="/sfsg/tools/image-tool" class="tool-card">
-					<h2>画像加工ツール</h2>
-					<p>拡張子変更・サイズ変更・トリミング・選択箇所モザイク処理</p>
+					<div class="tool-icon">🖼️</div>
+					<div class="tool-name">画像加工ツール</div>
+					<div class="tool-desc">ブラウザ上で画像の拡張子変換、サイズ変更、選択箇所のモザイク処理を行います。画像はサーバーに送信されません。</div>
 				</a>
 			</div>
 		</main>
 		<Footer />
 
 		<style>
+			main {
+				flex-grow: 1;
+				max-width: 900px;
+				width: 100%;
+				margin: 0 auto;
+				padding: 3rem 1.5rem;
+			}
 			.page-title {
-				font-size: 1.5rem;
+				font-size: 1.75rem;
 				font-weight: 700;
 				margin-bottom: 0.5rem;
 			}
@@ -35,34 +43,41 @@ import Footer from '../../components/Footer.astro';
 				color: #64748b;
 				margin-bottom: 2rem;
 			}
-			.tool-grid {
+			.tools-grid {
 				display: grid;
-				gap: 1rem;
+				grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+				gap: 1.5rem;
 			}
 			.tool-card {
-				display: block;
 				background-color: #ffffff;
 				border: 1px solid #e2e8f0;
 				border-radius: 1rem;
 				padding: 1.5rem;
 				text-decoration: none;
 				color: inherit;
-				transition: border-color 0.2s, box-shadow 0.2s;
+				display: flex;
+				flex-direction: column;
+				gap: 0.75rem;
+				transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
 			}
 			.tool-card:hover {
-				border-color: #94a3b8;
-				box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+				transform: translateY(-2px);
+				box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+				border-color: #cbd5e1;
 			}
-			.tool-card h2 {
-				font-size: 1.125rem;
+			.tool-icon {
+				font-size: 2rem;
+				margin-bottom: 0.25rem;
+			}
+			.tool-name {
+				font-size: 1rem;
 				font-weight: 600;
-				margin-bottom: 0.375rem;
 				color: #0f172a;
 			}
-			.tool-card p {
-				font-size: 0.875rem;
+			.tool-desc {
+				font-size: 0.8125rem;
 				color: #64748b;
-				margin: 0;
+				line-height: 1.5;
 			}
 		</style>
 	</body>
