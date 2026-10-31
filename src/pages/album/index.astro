@@ -1,15 +1,16 @@
 ---
 import { getCollection } from 'astro:content';
+import { Image } from 'astro:assets';
 import BaseHead from '../../components/BaseHead.astro';
 import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
 import { SITE_TITLE, SITE_DESCRIPTION } from '../../consts';
 
-const posts = (await getCollection('album')).sort(
-	(a, b) => new Date(b.data.date).valueOf() - new Date(a.data.date).valueOf()
+const albums = (await getCollection('album')).sort(
+	(a, b) => new Date(b.data.date || b.data.pubDate).valueOf() - new Date(a.data.date || a.data.pubDate).valueOf()
 );
-const pagePosts = posts.slice(0, 15);
-const totalPages = Math.ceil(posts.length / 15);
+const pageAlbums = albums.slice(0, 15);
+const totalPages = Math.ceil(albums.length / 15);
 ---
 
 <!doctype html>
@@ -26,23 +27,50 @@ const totalPages = Math.ceil(posts.length / 15);
 			}
 			.album-grid {
 				display: grid;
-				grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+				grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
 				gap: 1.5rem;
+				list-style-type: none;
 				margin: 0 0 3rem 0;
 				padding: 0;
-				list-style-type: none;
 			}
 			.album-item {
-				background: #ffffff;
-				border: 1px solid #e2e8f0;
-				border-radius: 0.5rem;
+				background: #fff;
+				border-radius: 12px;
+				overflow: hidden;
+				box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+				transition: transform 0.2s ease, box-shadow 0.2s ease;
+				cursor: pointer;
+			}
+			.album-item:hover {
+				transform: translateY(-4px);
+				box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+			}
+			.album-thumb {
+				width: 100%;
+				height: 160px;
+				object-fit: cover;
+				display: block;
+			}
+			.album-info {
 				padding: 1rem;
 			}
+			.album-title {
+				font-size: 1rem;
+				margin: 0 0 0.5rem 0;
+				color: rgb(var(--black));
+			}
+			.album-date {
+				font-size: 0.85rem;
+				color: rgb(var(--gray));
+				margin: 0;
+			}
+			/* ページネーション用スタイル */
 			.pagination {
 				display: flex;
 				justify-content: center;
 				align-items: center;
 				gap: 1rem;
+				margin-top: 3rem;
 			}
 			.page-btn {
 				padding: 0.5rem 1rem;
@@ -65,19 +93,83 @@ const totalPages = Math.ceil(posts.length / 15);
 				font-size: 0.875rem;
 				color: rgb(var(--gray));
 			}
+			/* モーダル（拡大表示）のスタイル */
+			dialog {
+				border: none;
+				border-radius: 16px;
+				padding: 1.5rem;
+				max-width: 90vw;
+				max-height: 90vh;
+				background: #fff;
+				box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+			}
+			dialog::backdrop {
+				background: rgba(0, 0, 0, 0.6);
+			}
+			.modal-content {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				gap: 0.75rem;
+				text-align: center;
+			}
+			.modal-image {
+				max-width: 100%;
+				max-height: 60vh;
+				object-fit: contain;
+				border-radius: 8px;
+			}
+			.close-btn {
+				background: #333;
+				color: #fff;
+				border: none;
+				padding: 0.5rem 1.5rem;
+				border-radius: 8px;
+				cursor: pointer;
+				font-size: 0.9rem;
+				margin-top: 0.5rem;
+			}
+			.close-btn:hover {
+				background: #555;
+			}
 		</style>
 	</head>
 	<body>
 		<Header />
 		<main>
 			<h1>Album</h1>
-			<div class="album-grid">
-				{pagePosts.map((item) => (
-					<div class="album-item">
-						<h3>{item.data.title}</h3>
-					</div>
-				))}
-			</div>
+			<ul class="album-grid">
+				{
+					pageAlbums.map((album) => {
+						let heroImg = album.data.heroImage;
+						if (typeof heroImg === 'string') {
+							if (heroImg.startsWith('./')) {
+								heroImg = `${import.meta.env.BASE_URL}album/${heroImg.replace('./', '')}`;
+							} else if (!heroImg.startsWith('http') && !heroImg.startsWith('/sfsg/')) {
+								heroImg = `${import.meta.env.BASE_URL}${heroImg.replace(/^\//, '')}`;
+							}
+						}
+						const safeTitle = (album.data.title || '').replace(/'/g, "\\'");
+						const safeDesc = (album.data.description || '').replace(/'/g, "\\'");
+						const albumDate = album.data.date || album.data.pubDate;
+						return (
+							<li class="album-item" id={album.id} onclick={`openModal('${heroImg}', '${safeTitle}', '${safeDesc}')`}>
+								{heroImg && (
+									typeof heroImg === 'string' ? (
+										<img class="album-thumb" width={400} height={300} src={heroImg} alt={album.data.title} />
+									) : (
+										<Image class="album-thumb" width={400} height={300} src={heroImg} alt={album.data.title} />
+									)
+								)}
+								<div class="album-info">
+									<h3 class="album-title">{album.data.title}</h3>
+									<p class="album-date">{albumDate ? new Date(albumDate).toLocaleDateString() : ''}</p>
+								</div>
+							</li>
+						);
+					})
+				}
+			</ul>
 
 			<nav class="pagination" aria-label="ページネーション">
 				<span class="page-btn disabled">← 前のページ</span>
@@ -92,6 +184,59 @@ const totalPages = Math.ceil(posts.length / 15);
 					<span class="page-btn disabled">次のページ →</span>
 				)}
 			</nav>
+
+			<!-- 拡大表示用モーダル -->
+			<dialog id="imageModal">
+				<div class="modal-content">
+					<img id="modalImg" class="modal-image" src="" alt="" />
+					<h3 id="modalTitle" style="margin: 0; font-size: 1.1rem; font-weight: bold;"></h3>
+					<p id="modalDesc" style="margin: 0; font-size: 0.95rem; color: rgb(var(--gray-dark));"></p>
+					<button class="close-btn" onclick="closeModal()">閉じる</button>
+				</div>
+			</dialog>
+
+			<script is:inline>
+				function openModal(imgSrc, title, description) {
+					const modal = document.getElementById('imageModal');
+					const modalImg = document.getElementById('modalImg');
+					const modalTitle = document.getElementById('modalTitle');
+					const modalDesc = document.getElementById('modalDesc');
+					
+					modalImg.src = imgSrc;
+					modalTitle.textContent = title;
+					modalDesc.textContent = description || '';
+					modal.showModal();
+				}
+
+				function closeModal() {
+					const modal = document.getElementById('imageModal');
+					modal.close();
+				}
+
+				const modal = document.getElementById('imageModal');
+				modal?.addEventListener('click', (event) => {
+					const rect = modal.getBoundingClientRect();
+					if (
+						event.clientX < rect.left ||
+						event.clientX > rect.right ||
+						event.clientY < rect.top ||
+						event.clientY > rect.bottom
+					) {
+						modal.close();
+					}
+				});
+
+				window.addEventListener('DOMContentLoaded', () => {
+					const hash = window.location.hash;
+					if (hash) {
+						const targetId = hash.replace('#', '');
+						const targetItem = document.getElementById(targetId);
+						if (targetItem) {
+							targetItem.click();
+						}
+					}
+				});
+			</script>
 		</main>
 		<Footer />
 	</body>
