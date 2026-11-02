@@ -263,10 +263,11 @@ const soundBtn = document.getElementById('sound-btn');
 const STORAGE_KEY = '47touring_cleared_route';
 
 // -------------------------------------------------------------
-// Web Audio API：BGM & ゴールファンファーレ
+// Web Audio API：BGM・ジングル・フェリー音・ファンファーレ
 // -------------------------------------------------------------
 let audioCtx = null;
 let bgmTimer = null;
+let ferryMelodyTimer = null;
 let isAudioEnabled = true;
 
 const BGM_NOTES = [
@@ -323,6 +324,7 @@ function scheduleBGM() {
 
 function startBGM() {
   initAudio();
+  stopFerryMelody();
   if (bgmTimer) clearTimeout(bgmTimer);
   if (isAudioEnabled) scheduleBGM();
 }
@@ -332,12 +334,63 @@ function stopBGM() {
   bgmTimer = null;
 }
 
-// 47都道府県制覇時のブラス風ファンファーレ
+// 1. 各ステージクリア・アイキャッチ時の爽快なジングル
+function playEyecatchJingle() {
+  if (!audioCtx || !isAudioEnabled) return;
+  const now = audioCtx.currentTime;
+  const notes = [
+    { time: 0.00, freq: 523.25, dur: 0.12, vol: 0.09 }, // C5
+    { time: 0.11, freq: 659.25, dur: 0.12, vol: 0.09 }, // E5
+    { time: 0.22, freq: 783.99, dur: 0.12, vol: 0.10 }, // G5
+    { time: 0.33, freq: 1046.50, dur: 0.30, vol: 0.13 }, // C6
+    { time: 0.50, freq: 880.00, dur: 0.18, vol: 0.11 }, // A5
+    { time: 0.68, freq: 1046.50, dur: 0.65, vol: 0.14 }  // C6 (サステイン)
+  ];
+  notes.forEach(n => {
+    playSynthTone(n.freq, "triangle", n.dur, n.vol, now + n.time);
+    playSynthTone(n.freq, "sawtooth", n.dur * 0.7, n.vol * 0.35, now + n.time);
+  });
+}
+
+// 2. フェリー乗船時の穏やかな海のメロディ（サイン波によるマリンチャイム）
+function startFerryMelody() {
+  initAudio();
+  stopBGM();
+  stopFerryMelody();
+  if (!isAudioEnabled || !audioCtx) return;
+
+  const notes = [
+    { freq: 392.00, dur: 0.40 }, // G4
+    { freq: 523.25, dur: 0.40 }, // C5
+    { freq: 659.25, dur: 0.60 }, // E5
+    { freq: 587.33, dur: 0.45 }, // D5
+    { freq: 493.88, dur: 0.45 }, // B4
+    { freq: 392.00, dur: 0.45 }, // G4
+    { freq: 523.25, dur: 0.90 }  // C5
+  ];
+  const delays = [0, 450, 950, 1600, 2100, 2600, 3100];
+
+  notes.forEach((n, idx) => {
+    const timer = setTimeout(() => {
+      if (isAudioEnabled && audioCtx) {
+        const now = audioCtx.currentTime;
+        playSynthTone(n.freq, "sine", n.dur, 0.08, now);
+        playSynthTone(n.freq * 2, "sine", n.dur * 0.6, 0.02, now); // 倍音でベルの透明感
+      }
+    }, delays[idx]);
+    if (idx === 0) ferryMelodyTimer = timer;
+  });
+}
+
+function stopFerryMelody() {
+  if (ferryMelodyTimer) clearTimeout(ferryMelodyTimer);
+  ferryMelodyTimer = null;
+}
+
+// 3. 47都道府県制覇時のブラス風ファンファーレ
 function playGoalFanfare() {
   if (!audioCtx || !isAudioEnabled) return;
   const now = audioCtx.currentTime;
-
-  // ファンファーレ和音パターン (Bb -> F -> Bb -> D -> F -> High Bb)
   const fanfareEvents = [
     { time: 0.00, freq: 466.16, dur: 0.20, vol: 0.12 },
     { time: 0.22, freq: 466.16, dur: 0.20, vol: 0.12 },
@@ -345,13 +398,11 @@ function playGoalFanfare() {
     { time: 0.66, freq: 587.33, dur: 0.40, vol: 0.15 },
     { time: 1.10, freq: 698.46, dur: 0.35, vol: 0.15 },
     { time: 1.50, freq: 932.33, dur: 1.80, vol: 0.22 },
-    // ハーモニー（和音の厚み）
     { time: 0.66, freq: 349.23, dur: 0.40, vol: 0.09 },
     { time: 1.10, freq: 466.16, dur: 0.35, vol: 0.11 },
     { time: 1.50, freq: 698.46, dur: 1.80, vol: 0.14 },
     { time: 1.50, freq: 466.16, dur: 1.80, vol: 0.12 }
   ];
-
   fanfareEvents.forEach(ev => {
     playSynthTone(ev.freq, "sawtooth", ev.dur, ev.vol, now + ev.time);
   });
@@ -363,13 +414,16 @@ soundBtn.addEventListener('click', (e) => {
   if (isAudioEnabled) {
     soundBtn.textContent = "🔊 BGM: ON";
     soundBtn.style.color = "#fff";
-    if (!isClear && !isFerryScene && !isGameOver && !isGrandGoal) {
+    if (isFerryScene) {
+      startFerryMelody();
+    } else if (!isClear && !isGameOver && !isGrandGoal) {
       startBGM();
     }
   } else {
     soundBtn.textContent = "🔇 BGM: OFF";
     soundBtn.style.color = "#888";
     stopBGM();
+    stopFerryMelody();
   }
 });
 
@@ -393,8 +447,6 @@ function getImage(src, fallbackSrc = null) {
 }
 
 const bikeImg = getImage(ASSET_PATHS.bike);
-
-// 各種アイキャッチ画像のプリロード
 const eyecatchImages = ASSET_PATHS.eyecatches.map(url => getImage(url));
 const eyecatchFerryImg = getImage(ASSET_PATHS.eyecatchFerry);
 const eyecatchGoalImg = getImage(ASSET_PATHS.eyecatchGoal);
@@ -562,6 +614,7 @@ canvas.addEventListener('pointerdown', (e) => {
       resetStage(currentStageIndex);
     } else if (isFerryScene) {
       isFerryScene = false;
+      stopFerryMelody();
       resetStage(currentStageIndex + 1);
     } else if (isClear) {
       resetStage(currentStageIndex + 1);
@@ -616,7 +669,7 @@ function update(dt) {
     updateAchievementUI();
     transitionLockTimer = 0.5;
 
-    // 通常BGM停止
+    // 走行BGM停止
     stopBGM();
 
     // 最終ステージ（沖縄県）クリア時はグランドゴール
@@ -630,10 +683,12 @@ function update(dt) {
     // フェリー航行判定
     if (stages[currentStageIndex].ferryNext) {
       isFerryScene = true;
+      startFerryMelody(); // 穏やかな海のメロディ
     } else {
       isClear = true;
       const randIdx = Math.floor(Math.random() * eyecatchImages.length);
       currentEyecatchImg = eyecatchImages[randIdx];
+      playEyecatchJingle(); // 爽快なアイキャッチジングル
     }
     return;
   }
@@ -723,6 +778,7 @@ function update(dt) {
       isGameOver = true;
       transitionLockTimer = 0.5;
       stopBGM();
+      stopFerryMelody();
     }
 
     if (obs.y > canvas.height + 55) obstacles.splice(i, 1);
