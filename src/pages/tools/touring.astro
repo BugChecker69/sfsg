@@ -187,7 +187,9 @@
 </div>
 
 <script>
-const BASE_URL = window.location.pathname.startsWith('/sfsg') ? '/sfsg' : '';
+// GitHub Pagesのベースパス解決
+const BASE_URL = window.location.pathname.includes('/sfsg') ? '/sfsg' : '';
+
 const ASSET_PATHS = {
   bike: `${BASE_URL}/motorcycle.png`,
   items: `${BASE_URL}/items/`,
@@ -199,6 +201,7 @@ const ASSET_PATHS = {
   ]
 };
 
+// 最新CSVに基づく全47都道府県の厳密バインドデータ
 const stages = [
   { id: 1, name: "東京都", capital: "新宿区", cities: ["八王子市", "町田市"], items: [{name: "もんじゃ焼き", file: "item_13_1.png"}, {name: "江戸切子", file: "item_13_2.png"}], landmarks: [{name: "東京タワー", file: "landmark_13_1.jpg"}, {name: "浅草寺", file: "landmark_13_2.jpg"}], bg: "#3a3a3a", ferryNext: null },
   { id: 2, name: "千葉県", capital: "千葉市", cities: ["船橋市", "松戸市"], items: [{name: "落花生", file: "item_12_1.png"}, {name: "びわ", file: "item_12_2.png"}], landmarks: [{name: "成田山新勝寺", file: "landmark_12_1.jpg"}, {name: "東京ディズニーリゾート", file: "landmark_12_2.jpg"}], bg: "#2a5953", ferryNext: null },
@@ -236,7 +239,7 @@ const stages = [
   { id: 34, name: "岡山県", capital: "岡山市", cities: ["倉敷市", "津山市"], items: [{name: "白桃", file: "item_33_1.png"}, {name: "マスカット", file: "item_33_2.png"}], landmarks: [{name: "倉敷美観地区", file: "landmark_33_1.jpg"}, {name: "岡山後楽園", file: "landmark_33_2.jpg"}], bg: "#3f5e56", ferryNext: null },
   { id: 35, name: "兵庫県", capital: "神戸市", cities: ["姫路市", "西宮市"], items: [{name: "神戸牛", file: "item_0_1.png"}, {name: "明石焼", file: "item_28_2.png"}], landmarks: [{name: "姫路城", file: "landmark_28_1.jpg"}, {name: "神戸ポートタワー", file: "landmark_28_2.jpg"}], bg: "#314e52", ferryNext: null },
   { id: 36, name: "鳥取県", capital: "鳥取市", cities: ["米子市", "倉吉市"], items: [{name: "二十世紀梨", file: "item_31_1.png"}, {name: "松葉がに", file: "item_0_2.png"}], landmarks: [{name: "鳥取砂丘", file: "landmark_31_1.jpg"}, {name: "水木しげるロード", file: "landmark_31_2.jpg"}], bg: "#65593e", ferryNext: null },
-  { id: 37, name: "島根県", capital: "松江市", cities: ["出雲市", "話し市"], items: [{name: "出雲そば", file: "item_32_1.png"}, {name: "しじみ", file: "item_32_2.png"}], landmarks: [{name: "出雲大社", file: "landmark_32_1.jpg"}, {name: "松江城", file: "landmark_32_2.jpg"}], bg: "#4a5342", ferryNext: null },
+  { id: 37, name: "島根県", capital: "松江市", cities: ["出雲市", "浜田市"], items: [{name: "出雲そば", file: "item_32_1.png"}, {name: "しじみ", file: "item_32_2.png"}], landmarks: [{name: "出雲大社", file: "landmark_32_1.jpg"}, {name: "松江城", file: "landmark_32_2.jpg"}], bg: "#4a5342", ferryNext: null },
   { id: 38, name: "広島県", capital: "広島市", cities: ["福山市", "呉市"], items: [{name: "広島風お好み焼き", file: "item_34_1.png"}, {name: "もみじ饅頭", file: "item_34_2.png"}], landmarks: [{name: "原爆ドーム", file: "landmark_34_1.jpg"}, {name: "厳島神社", file: "landmark_34_2.jpg"}], bg: "#4a4f54", ferryNext: null },
   { id: 39, name: "山口県", capital: "山口市", cities: ["下関市", "宇部市"], items: [{name: "ふぐ料理", file: "item_35_1.png"}, {name: "瓦そば", file: "item_35_2.png"}], landmarks: [{name: "角島大橋", file: "landmark_35_1.jpg"}, {name: "錦帯橋", file: "landmark_35_2.jpg"}], bg: "#28586c", ferryNext: null },
   { id: 40, name: "福岡県", capital: "福岡市", cities: ["北九州市", "久留米市"], items: [{name: "辛子明太子", file: "item_40_1.png"}, {name: "博多ラーメン", file: "item_40_2.png"}], landmarks: [{name: "太宰府天満宮", file: "landmark_40_1.jpg"}, {name: "福岡タワー", file: "landmark_40_2.jpg"}], bg: "#3f4f5a", ferryNext: null },
@@ -346,7 +349,7 @@ soundBtn.addEventListener('click', (e) => {
 });
 
 // -------------------------------------------------------------
-// 画像読み込みとキャッシュ機構
+// 画像キャッシュ機構
 // -------------------------------------------------------------
 const imageCache = {};
 function getImage(src, fallbackSrc = null) {
@@ -366,9 +369,11 @@ function getImage(src, fallbackSrc = null) {
 
 const bikeImg = getImage(ASSET_PATHS.bike);
 
-// アイキャッチ画像のプリロード（.jpeg と .jpg の双方に対応）
-const eyecatchImages = ASSET_PATHS.eyecatches.map(item => {
-  return getImage(item.primary, item.alt);
+// アイキャッチ画像のプリロード
+const eyecatchImages = ASSET_PATHS.eyecatches.map(url => {
+  const img = new Image();
+  img.src = url;
+  return img;
 });
 
 let currentStageIndex = 0;
@@ -459,7 +464,7 @@ function resetStage(stageIndex) {
   isFerryScene = false;
   isGrandGoal = false;
   currentEyecatchImg = null;
-  transitionLockTimer = 0.5; // 遷移直後の誤入力を確実に防止
+  transitionLockTimer = 0.5;
   obstacles = [];
   roadSigns = [];
   spawnTimer = 0;
@@ -525,7 +530,7 @@ btnRight.addEventListener('pointerdown', (e) => {
 btnRight.addEventListener('pointerup', (e) => { e.preventDefault(); player.moveRight = false; });
 btnRight.addEventListener('pointerleave', () => player.moveRight = false);
 
-// 画面タッチ・タップ処理（プレイ中は左右ステア、静止画面でのみステージ遷移）
+// 画面タッチ・タップ処理
 canvas.addEventListener('pointerdown', (e) => {
   e.preventDefault();
 
@@ -546,7 +551,7 @@ canvas.addEventListener('pointerdown', (e) => {
     return;
   }
 
-  // プレイ中の左右タップ操作（※リセット処理は絶対に呼ばない）
+  // プレイ中の左右タップ操作
   if (isAudioEnabled && !bgmTimer) startBGM();
 
   const rect = canvas.getBoundingClientRect();
@@ -560,7 +565,6 @@ canvas.addEventListener('pointerdown', (e) => {
   }
 });
 
-// 指またはマウスを離した際の停止
 window.addEventListener('pointerup', () => {
   if (!isGameOver && !isClear && !isFerryScene && !isGrandGoal) {
     player.moveLeft = false;
@@ -596,7 +600,7 @@ function update(dt) {
     // BGM停止
     stopBGM();
 
-    // ランダムアイキャッチ選出
+    // 読み込み済みの画像インスタンスからランダム選出
     const randIdx = Math.floor(Math.random() * eyecatchImages.length);
     currentEyecatchImg = eyecatchImages[randIdx];
 
@@ -882,7 +886,6 @@ function drawSnapShot() {
 }
 
 function renderClearScene() {
-  // アイキャッチ描画
   if (currentEyecatchImg && currentEyecatchImg.complete && currentEyecatchImg.naturalWidth !== 0) {
     const imgW = currentEyecatchImg.naturalWidth;
     const imgH = currentEyecatchImg.naturalHeight;
@@ -893,18 +896,10 @@ function renderClearScene() {
     const dy = (canvas.height - dh) / 2;
     ctx.drawImage(currentEyecatchImg, dx, dy, dw, dh);
   } else {
-    // 画像ロード前／失敗時のフォールバック背景
     ctx.fillStyle = "#1b2838";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = "rgba(255, 255, 255, 0.1)";
-    ctx.fillRect(20, 40, canvas.width - 40, 320);
-    ctx.fillStyle = "#81d4fa";
-    ctx.font = "40px sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText("🏍️", canvas.width / 2, 200);
   }
 
-  // 下部バナー帯
   const bannerH = 190;
   const bannerY = canvas.height - bannerH;
   const grad = ctx.createLinearGradient(0, bannerY - 30, 0, bannerY + 20);
