@@ -1,5 +1,5 @@
 ---
-// Astroファイルとして作成する場合のフロントマター（単体HTMLとして使う場合はこの3行を削除）
+// src/pages/tools/touring.astro
 ---
 <!DOCTYPE html>
 <html lang="ja">
@@ -22,7 +22,8 @@
   .nav-header {
     width: 360px;
     display: flex;
-    justify-content: flex-start;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 12px;
   }
   .back-link {
@@ -41,6 +42,20 @@
   .back-link:hover {
     background: #37474f;
     color: #fff;
+  }
+  .sound-btn {
+    background: #212121;
+    color: #fff;
+    border: 1px solid #37474f;
+    border-radius: 4px;
+    padding: 4px 10px;
+    font-size: 13px;
+    cursor: pointer;
+    user-select: none;
+    transition: 0.15s;
+  }
+  .sound-btn:hover {
+    background: #37474f;
   }
   #game-container {
     position: relative;
@@ -144,6 +159,7 @@
 
 <div class="nav-header">
   <a href="/sfsg/tools/" class="back-link">◀ Toolsに戻る</a>
+  <button id="sound-btn" class="sound-btn">🔊 BGM: ON</button>
 </div>
 
 <div id="game-container">
@@ -169,7 +185,6 @@
 </div>
 
 <script>
-// GitHub Pagesのサブディレクトリに対応したベースパス解決
 const BASE_URL = window.location.pathname.startsWith('/sfsg') ? '/sfsg' : '';
 const ASSET_PATHS = {
   bike: `${BASE_URL}/motorcycle.png`,
@@ -233,9 +248,116 @@ const stageNameEl = document.getElementById('stage-name');
 const timerEl = document.getElementById('timer-display');
 const clearedCountEl = document.getElementById('cleared-count');
 const prefGridEl = document.getElementById('pref-grid');
+const soundBtn = document.getElementById('sound-btn');
 
 const STORAGE_KEY = '47touring_cleared_route';
 
+// -------------------------------------------------------------
+// Web Audio API による Out Run 風 軽快シンセBGMエンジン
+// -------------------------------------------------------------
+let audioCtx = null;
+let bgmTimer = null;
+let isAudioEnabled = true;
+
+// D Major / B Minor 系の爽快なシンセウェーブ・アルペジオ進行
+const BGM_NOTES = [
+  // A section: D -> A/C# -> Bm -> G
+  587.33, 739.99, 880.00, 739.99,  554.37, 739.99, 880.00, 739.99,
+  493.88, 739.99, 880.00, 739.99,  392.00, 587.33, 783.99, 587.33,
+  // B section: Em -> F#m -> G -> A
+  329.63, 493.88, 659.25, 493.88,  369.99, 554.37, 739.99, 554.37,
+  392.00, 587.33, 783.99, 587.33,  440.00, 659.25, 880.00, 659.25
+];
+const BASS_NOTES = [
+  146.83, 146.83, 138.59, 138.59,  123.47, 123.47,  98.00,  98.00,
+   82.41,  82.41,  92.50,  92.50,   98.00,  98.00, 110.00, 110.00
+];
+
+let bgmStep = 0;
+
+function initAudio() {
+  if (!audioCtx) {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    audioCtx = new AudioContext();
+  }
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
+}
+
+function playSynthTone(freq, type, duration, vol, startTime) {
+  if (!audioCtx || !isAudioEnabled) return;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, startTime);
+
+  gain.gain.setValueAtTime(vol, startTime);
+  gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+
+  osc.start(startTime);
+  osc.stop(startTime + duration);
+}
+
+function scheduleBGM() {
+  if (!isAudioEnabled || !audioCtx) return;
+  const now = audioCtx.currentTime;
+  const stepTime = 0.125; // 16分音符テンポ (BPM 120)
+
+  // リードシンセ音（明るいノコギリ波）
+  const leadFreq = BGM_NOTES[bgmStep % BGM_NOTES.length];
+  playSynthTone(leadFreq, "sawtooth", 0.11, 0.045, now);
+
+  // 8小節ごとのベース音（矩形波）
+  if (bgmStep % 2 === 0) {
+    const bassIdx = Math.floor((bgmStep % BGM_NOTES.length) / 2);
+    const bassFreq = BASS_NOTES[bassIdx % BASS_NOTES.length];
+    playSynthTone(bassFreq, "square", 0.22, 0.055, now);
+  }
+
+  bgmStep++;
+  bgmTimer = setTimeout(scheduleBGM, stepTime * 1000);
+}
+
+function startBGM() {
+  initAudio();
+  if (bgmTimer) clearTimeout(bgmTimer);
+  if (isAudioEnabled) scheduleBGM();
+}
+
+function stopBGM() {
+  if (bgmTimer) clearTimeout(bgmTimer);
+  bgmTimer = null;
+}
+
+soundBtn.addEventListener('click', () => {
+  isAudioEnabled = !isAudioEnabled;
+  if (isAudioEnabled) {
+    soundBtn.textContent = "🔊 BGM: ON";
+    soundBtn.style.color = "#fff";
+    startBGM();
+  } else {
+    soundBtn.textContent = "🔇 BGM: OFF";
+    soundBtn.style.color = "#888";
+    stopBGM();
+  }
+});
+
+// ユーザーの初回操作でブラウザのAudio制限を解除
+window.addEventListener('pointerdown', () => {
+  if (isAudioEnabled && !bgmTimer) startBGM();
+}, { once: true });
+window.addEventListener('keydown', () => {
+  if (isAudioEnabled && !bgmTimer) startBGM();
+}, { once: true });
+
+// -------------------------------------------------------------
+// ゲームメイン処理
+// -------------------------------------------------------------
 const imageCache = {};
 function getImage(src) {
   if (!imageCache[src]) {
@@ -448,6 +570,7 @@ function update(dt) {
     if (s.y > canvas.height + 50) roadSigns.splice(i, 1);
   }
 
+  // 障害物（名産品）生成
   spawnTimer += dt;
   if (spawnTimer > 1.1) {
     spawnTimer = 0;
@@ -456,7 +579,7 @@ function update(dt) {
     const itemObj = curStage.items[Math.floor(Math.random() * curStage.items.length)];
     obstacles.push({
       x: spawnX,
-      y: -44,
+      y: -50,
       width: 40,
       height: 40,
       name: itemObj.name,
@@ -465,6 +588,7 @@ function update(dt) {
     });
   }
 
+  // 当たり判定
   for (let i = obstacles.length - 1; i >= 0; i--) {
     const obs = obstacles[i];
     obs.y += obs.speed * dt;
@@ -491,7 +615,7 @@ function update(dt) {
       isGameOver = true;
     }
 
-    if (obs.y > canvas.height + 50) obstacles.splice(i, 1);
+    if (obs.y > canvas.height + 55) obstacles.splice(i, 1);
   }
 }
 
@@ -544,6 +668,7 @@ function render() {
     if (t.length > 2) ctx.fillText(t.substring(2, 4), signX + 16, s.y + 36);
   }
 
+  // 障害物（名産品）と品目テキストの描画
   for (const obs of obstacles) {
     const itemImg = getImage(obs.imgSrc);
     if (itemImg.complete && itemImg.naturalWidth !== 0) {
@@ -556,13 +681,18 @@ function render() {
       ctx.strokeStyle = "#fff";
       ctx.lineWidth = 1.5;
       ctx.stroke();
-
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "bold 9px sans-serif";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(obs.name.substring(0, 4), obs.x + obs.width / 2, obs.y + obs.height / 2);
     }
+
+    // 名産品の品名テキストラベル（画像直下に縁取り付きで表示）
+    ctx.font = "bold 10px sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "top";
+    ctx.lineJoin = "round";
+    ctx.lineWidth = 2.5;
+    ctx.strokeStyle = "#000";
+    ctx.strokeText(obs.name, obs.x + obs.width / 2, obs.y + obs.height + 2);
+    ctx.fillStyle = "#ffeb3b";
+    ctx.fillText(obs.name, obs.x + obs.width / 2, obs.y + obs.height + 2);
   }
   ctx.textBaseline = "alphabetic";
 
