@@ -198,6 +198,7 @@ const ASSET_PATHS = {
     `${BASE_URL}/eyecatch/eyecatch_02.jpg`,
     `${BASE_URL}/eyecatch/eyecatch_03.jpg`
   ],
+  eyecatchStart: `${BASE_URL}/eyecatch/eyecatch_00.jpg`,
   eyecatchFerry: `${BASE_URL}/eyecatch/eyecatch_30.jpg`,
   eyecatchGoal: `${BASE_URL}/eyecatch/eyecatch_47.jpg`
 };
@@ -223,7 +224,7 @@ const stages = [
   { id: 18, name: "長野県", capital: "長野市", cities: ["松本市", "上田市"], items: [{name: "信州そば", file: "item_20_1.png"}, {name: "おやき", file: "item_20_2.png"}], landmarks: [{name: "善光寺", file: "landmark_20_1.jpg"}, {name: "松本城", file: "landmark_20_2.jpg"}], bg: "#395b44", ferryNext: null },
   { id: 19, name: "富山県", capital: "富山市", cities: ["高岡市", "射水市"], items: [{name: "白えび", file: "item_16_1.png"}, {name: "ます寿司", file: "item_16_2.png"}], landmarks: [{name: "立山黒部アルペンルート", file: "landmark_16_1.jpg"}, {name: "黒部ダム", file: "landmark_16_2.jpg"}], bg: "#2c5364", ferryNext: null },
   { id: 20, name: "石川県", capital: "金沢市", cities: ["白山市", "小松市"], items: [{name: "金沢カレー", file: "item_17_1.png"}, {name: "加賀友禅", file: "item_17_2.png"}], landmarks: [{name: "兼六園", file: "landmark_17_1.jpg"}, {name: "金沢21世紀美術館", file: "landmark_17_2.jpg"}], bg: "#4a5335", ferryNext: null },
-  { id: 21, name: "福井県", capital: "福井市", cities: ["坂井市", "越前市"], items: [{name: "越前がに", file: "item_0_2.png"}, {name: "越前そば", file: "item_18_2.png"}], landmarks: [{name: "東尋坊", file: "landmark_18_1.jpg"}, {name: "福井県立恐竜博物館", file: "landmark_18_2.jpg"}], bg: "#36594f", ferryNext: null },
+  { id: 21, name: "福井県", capital: "福井市", cities: ["坂井市", "越前市"], items: [{name: "越前ガニ", file: "item_0_2.png"}, {name: "越前そば", file: "item_18_2.png"}], landmarks: [{name: "東尋坊", file: "landmark_18_1.jpg"}, {name: "福井県立恐竜博物館", file: "landmark_18_2.jpg"}], bg: "#36594f", ferryNext: null },
   { id: 22, name: "岐阜県", capital: "岐阜市", cities: ["大垣市", "各務原市"], items: [{name: "飛騨牛", file: "item_0_1.png"}, {name: "栗きんとん", file: "item_21_2.png"}], landmarks: [{name: "白川郷合掌造り集落", file: "landmark_21_1.jpg"}, {name: "岐阜城", file: "landmark_21_2.jpg"}], bg: "#3d5a3d", ferryNext: null },
   { id: 23, name: "愛知県", capital: "名古屋市", cities: ["豊田市", "一宮市"], items: [{name: "ひつまぶし", file: "item_23_1.png"}, {name: "味噌カツ", file: "item_23_2.png"}], landmarks: [{name: "名古屋城", file: "landmark_23_1.jpg"}, {name: "熱田神宮", file: "landmark_23_2.jpg"}], bg: "#4d4d4d", ferryNext: null },
   { id: 24, name: "三重県", capital: "津市", cities: ["四日市市", "鈴鹿市"], items: [{name: "松阪牛", file: "item_0_1.png"}, {name: "伊勢えび", file: "item_24_2.png"}], landmarks: [{name: "伊勢神宮", file: "landmark_24_1.jpg"}, {name: "志摩スペイン村", file: "landmark_24_2.jpg"}], bg: "#345b52", ferryNext: null },
@@ -263,13 +264,15 @@ const soundBtn = document.getElementById('sound-btn');
 const STORAGE_KEY = '47touring_cleared_route';
 
 // -------------------------------------------------------------
-// Web Audio API：BGM・ジングル・フェリー音・ファンファーレ
+// Web Audio API：BGM・朝の静けさ・ジングル・フェリー音・ファンファーレ
 // -------------------------------------------------------------
 let audioCtx = null;
 let bgmTimer = null;
+let morningBgmTimer = null;
 let ferryMelodyTimer = null;
 let isAudioEnabled = true;
 
+// 走行用 80s ドライブBGM
 const BGM_NOTES = [
   587.33, 739.99, 880.00, 739.99,  554.37, 739.99, 880.00, 739.99,
   493.88, 739.99, 880.00, 739.99,  392.00, 587.33, 783.99, 587.33,
@@ -281,6 +284,15 @@ const BASS_NOTES = [
    82.41,  82.41,  92.50,  92.50,   98.00,  98.00, 110.00, 110.00
 ];
 let bgmStep = 0;
+
+// 朝の静けさを表現したアコースティック調アルペジオ (Dadd9 -> Gmaj7 -> Bm7 -> Asus4)
+const MORNING_NOTES = [
+  293.66, 440.00, 587.33, 659.25, 739.99, 659.25,
+  196.00, 392.00, 493.88, 587.33, 739.99, 587.33,
+  246.94, 369.99, 440.00, 587.33, 739.99, 587.33,
+  220.00, 329.63, 440.00, 587.33, 659.25, 440.00
+];
+let morningStep = 0;
 
 function initAudio() {
   if (!audioCtx) {
@@ -306,6 +318,7 @@ function playSynthTone(freq, type, duration, vol, startTime) {
   osc.stop(startTime + duration);
 }
 
+// 走行用ドライブBGMスケジューラ
 function scheduleBGM() {
   if (!isAudioEnabled || !audioCtx) return;
   const now = audioCtx.currentTime;
@@ -324,6 +337,7 @@ function scheduleBGM() {
 
 function startBGM() {
   initAudio();
+  stopMorningBGM();
   stopFerryMelody();
   if (bgmTimer) clearTimeout(bgmTimer);
   if (isAudioEnabled) scheduleBGM();
@@ -334,6 +348,34 @@ function stopBGM() {
   bgmTimer = null;
 }
 
+// 朝の静けさBGMスケジューラ（柔らかなサイン波と三角波のアンサンブル）
+function scheduleMorningBGM() {
+  if (!isAudioEnabled || !audioCtx) return;
+  const now = audioCtx.currentTime;
+  const stepTime = 0.26;
+  const noteFreq = MORNING_NOTES[morningStep % MORNING_NOTES.length];
+
+  playSynthTone(noteFreq, "sine", 0.55, 0.055, now);
+  playSynthTone(noteFreq * 2, "triangle", 0.35, 0.015, now);
+
+  morningStep++;
+  morningBgmTimer = setTimeout(scheduleMorningBGM, stepTime * 1000);
+}
+
+function startMorningBGM() {
+  initAudio();
+  stopBGM();
+  stopFerryMelody();
+  if (morningBgmTimer) clearTimeout(morningBgmTimer);
+  if (isAudioEnabled) scheduleMorningBGM();
+}
+
+function stopMorningBGM() {
+  if (morningBgmTimer) clearTimeout(morningBgmTimer);
+  morningBgmTimer = null;
+}
+
+// ステージクリアジングル
 function playEyecatchJingle() {
   if (!audioCtx || !isAudioEnabled) return;
   const now = audioCtx.currentTime;
@@ -351,9 +393,11 @@ function playEyecatchJingle() {
   });
 }
 
+// フェリー航行メロディ
 function startFerryMelody() {
   initAudio();
   stopBGM();
+  stopMorningBGM();
   stopFerryMelody();
   if (!isAudioEnabled || !audioCtx) return;
 
@@ -385,6 +429,7 @@ function stopFerryMelody() {
   ferryMelodyTimer = null;
 }
 
+// ゴールファンファーレ
 function playGoalFanfare() {
   if (!audioCtx || !isAudioEnabled) return;
   const now = audioCtx.currentTime;
@@ -411,7 +456,9 @@ soundBtn.addEventListener('click', (e) => {
   if (isAudioEnabled) {
     soundBtn.textContent = "🔊 BGM: ON";
     soundBtn.style.color = "#fff";
-    if (isFerryScene) {
+    if (isTitleScreen) {
+      startMorningBGM();
+    } else if (isFerryScene) {
       startFerryMelody();
     } else if (!isClear && !isGameOver && !isGrandGoal) {
       startBGM();
@@ -420,6 +467,7 @@ soundBtn.addEventListener('click', (e) => {
     soundBtn.textContent = "🔇 BGM: OFF";
     soundBtn.style.color = "#888";
     stopBGM();
+    stopMorningBGM();
     stopFerryMelody();
   }
 });
@@ -445,9 +493,11 @@ function getImage(src, fallbackSrc = null) {
 
 const bikeImg = getImage(ASSET_PATHS.bike);
 const eyecatchImages = ASSET_PATHS.eyecatches.map(url => getImage(url));
+const eyecatchStartImg = getImage(ASSET_PATHS.eyecatchStart);
 const eyecatchFerryImg = getImage(ASSET_PATHS.eyecatchFerry);
 const eyecatchGoalImg = getImage(ASSET_PATHS.eyecatchGoal);
 
+let isTitleScreen = true; // スタート待機タイトル画面
 let currentStageIndex = 0;
 let stageTime = 30.0;
 let lastTime = 0;
@@ -458,7 +508,6 @@ let isGrandGoal = false;
 let transitionLockTimer = 0;
 let currentEyecatchImg = null;
 
-// プレイヤー設定（元画像のアスペクト比を維持して描画）
 const player = {
   width: 44,
   height: 44,
@@ -513,6 +562,7 @@ function updateAchievementUI() {
     badge.title = `${st.id}. ${st.name}`;
     badge.addEventListener('click', (e) => {
       e.stopPropagation();
+      isTitleScreen = false;
       resetStage(idx);
     });
     prefGridEl.appendChild(badge);
@@ -564,7 +614,7 @@ function resetStage(stageIndex) {
   });
   cur.landmarks.forEach(lm => getImage(ASSET_PATHS.landmarks + lm.file));
 
-  if (isAudioEnabled) {
+  if (!isTitleScreen && isAudioEnabled) {
     startBGM();
   }
 
@@ -572,6 +622,11 @@ function resetStage(stageIndex) {
 }
 
 window.addEventListener('keydown', (e) => {
+  if (isTitleScreen) {
+    isTitleScreen = false;
+    resetStage(0);
+    return;
+  }
   if (isAudioEnabled && !bgmTimer && !isClear && !isFerryScene && !isGameOver && !isGrandGoal) {
     startBGM();
   }
@@ -587,6 +642,11 @@ const btnLeft = document.getElementById('btn-left');
 const btnRight = document.getElementById('btn-right');
 btnLeft.addEventListener('pointerdown', (e) => {
   e.preventDefault();
+  if (isTitleScreen) {
+    isTitleScreen = false;
+    resetStage(0);
+    return;
+  }
   if (isAudioEnabled && !bgmTimer && !isClear && !isFerryScene && !isGameOver && !isGrandGoal) startBGM();
   player.moveLeft = true;
 });
@@ -595,6 +655,11 @@ btnLeft.addEventListener('pointerleave', () => player.moveLeft = false);
 
 btnRight.addEventListener('pointerdown', (e) => {
   e.preventDefault();
+  if (isTitleScreen) {
+    isTitleScreen = false;
+    resetStage(0);
+    return;
+  }
   if (isAudioEnabled && !bgmTimer && !isClear && !isFerryScene && !isGameOver && !isGrandGoal) startBGM();
   player.moveRight = true;
 });
@@ -604,6 +669,14 @@ btnRight.addEventListener('pointerleave', () => player.moveRight = false);
 canvas.addEventListener('pointerdown', (e) => {
   e.preventDefault();
 
+  // タイトル画面タップで出走開始
+  if (isTitleScreen) {
+    isTitleScreen = false;
+    resetStage(0);
+    return;
+  }
+
+  // 静止・リザルト画面での遷移処理
   if (isGameOver || isClear || isFerryScene || isGrandGoal) {
     if (transitionLockTimer > 0) return;
 
@@ -635,11 +708,18 @@ canvas.addEventListener('pointerdown', (e) => {
 });
 
 window.addEventListener('pointerup', () => {
-  if (!isGameOver && !isClear && !isFerryScene && !isGrandGoal) {
+  if (!isTitleScreen && !isGameOver && !isClear && !isFerryScene && !isGrandGoal) {
     player.moveLeft = false;
     player.moveRight = false;
   }
 });
+
+// 起動時の初期化および朝BGM開始リスナー
+window.addEventListener('pointerdown', () => {
+  if (isTitleScreen && isAudioEnabled && !morningBgmTimer) {
+    startMorningBGM();
+  }
+}, { once: false });
 
 function gameLoop(timestamp) {
   if (!lastTime) lastTime = timestamp;
@@ -653,6 +733,8 @@ function gameLoop(timestamp) {
 }
 
 function update(dt) {
+  if (isTitleScreen) return;
+
   if (transitionLockTimer > 0) {
     transitionLockTimer -= dt;
   }
@@ -750,7 +832,6 @@ function update(dt) {
     const obs = obstacles[i];
     obs.y += obs.speed * dt;
 
-    // バイク車体コアに合わせた当たり判定（車体の30%前方シフトに追従）
     const forwardOffset = player.height * 0.3;
     const pBox = {
       x: player.x + 10,
@@ -783,6 +864,11 @@ function update(dt) {
 
 function render() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  if (isTitleScreen) {
+    renderTitleScreen();
+    return;
+  }
 
   ctx.fillStyle = stages[currentStageIndex].bg;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -882,18 +968,15 @@ function render() {
 function renderMotorcycle(x, y, w, h) {
   const cx = x + w / 2;
 
-  // 元画像の縦横比から実際の描画高さを算出
   let drawH = h;
   if (bikeImg && bikeImg.complete && bikeImg.naturalWidth !== 0) {
     const naturalRatio = bikeImg.naturalHeight / bikeImg.naturalWidth;
     drawH = w * naturalRatio;
   }
 
-  // 車体の30%分前（画面上方）へシフト
   const forwardOffset = drawH * 0.3;
   const drawY = y + (h - drawH) - forwardOffset;
 
-  // ヘッドライト照射光（前方に移動した車頭位置に追従）
   const grad = ctx.createLinearGradient(cx, drawY + 10, cx, drawY - 140);
   grad.addColorStop(0, "rgba(255, 255, 220, 0.45)");
   grad.addColorStop(1, "rgba(255, 255, 220, 0)");
@@ -905,7 +988,6 @@ function renderMotorcycle(x, y, w, h) {
   ctx.closePath();
   ctx.fill();
 
-  // バイク画像の描画
   if (bikeImg && bikeImg.complete && bikeImg.naturalWidth !== 0) {
     ctx.drawImage(bikeImg, x, drawY, w, drawH);
   } else {
@@ -984,6 +1066,38 @@ function drawCoverImage(img) {
     return true;
   }
   return false;
+}
+
+// 朝焼けのスタート待機画面（eyecatch_00.jpg 全面描画）
+function renderTitleScreen() {
+  if (!drawCoverImage(eyecatchStartImg)) {
+    ctx.fillStyle = "#2c3e50";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
+
+  const bannerH = 190;
+  const bannerY = canvas.height - bannerH;
+  const grad = ctx.createLinearGradient(0, bannerY - 30, 0, bannerY + 20);
+  grad.addColorStop(0, "rgba(0, 0, 0, 0)");
+  grad.addColorStop(1, "rgba(0, 0, 0, 0.88)");
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, bannerY - 30, canvas.width, 50);
+
+  ctx.fillStyle = "rgba(0, 0, 0, 0.88)";
+  ctx.fillRect(0, bannerY + 20, canvas.width, bannerH - 20);
+
+  ctx.fillStyle = "#ffca28";
+  ctx.font = "bold 23px sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText("47都道府県ツーリング", canvas.width / 2, bannerY + 45);
+
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "14px sans-serif";
+  ctx.fillText("東京出発 ➔ 日本全国一筆書きの旅", canvas.width / 2, bannerY + 80);
+
+  ctx.fillStyle = "#81c784";
+  ctx.font = "bold 16px sans-serif";
+  ctx.fillText("画面タップで出走", canvas.width / 2, bannerY + 125);
 }
 
 function renderClearScene() {
@@ -1085,7 +1199,7 @@ function renderGrandGoal() {
   ctx.fillText("画面タップで再挑戦（ステージ1へ）", canvas.width / 2, bannerY + 120);
 }
 
-// 初期起動
+// 初期化（スタート画面待機状態）
 resetStage(0);
 requestAnimationFrame(gameLoop);
 </script>
