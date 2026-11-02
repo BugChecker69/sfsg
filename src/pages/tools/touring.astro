@@ -190,10 +190,14 @@ const BASE_URL = window.location.pathname.startsWith('/sfsg') ? '/sfsg' : '';
 const ASSET_PATHS = {
   bike: `${BASE_URL}/motorcycle.png`,
   items: `${BASE_URL}/items/`,
-  landmarks: `${BASE_URL}/landmarks/`
+  landmarks: `${BASE_URL}/landmarks/`,
+  eyecatches: [
+    `${BASE_URL}/eyecatch/eyecatch_01.jpeg`,
+    `${BASE_URL}/eyecatch/eyecatch_02.jpeg`,
+    `${BASE_URL}/eyecatch/eyecatch_03.jpeg`
+  ]
 };
 
-// 最新CSVに基づく全47都道府県の厳密バインドデータ
 const stages = [
   { id: 1, name: "東京都", capital: "新宿区", cities: ["八王子市", "町田市"], items: [{name: "もんじゃ焼き", file: "item_13_1.png"}, {name: "江戸切子", file: "item_13_2.png"}], landmarks: [{name: "東京タワー", file: "landmark_13_1.jpg"}, {name: "浅草寺", file: "landmark_13_2.jpg"}], bg: "#3a3a3a", ferryNext: null },
   { id: 2, name: "千葉県", capital: "千葉市", cities: ["船橋市", "松戸市"], items: [{name: "落花生", file: "item_12_1.png"}, {name: "びわ", file: "item_12_2.png"}], landmarks: [{name: "成田山新勝寺", file: "landmark_12_1.jpg"}, {name: "東京ディズニーリゾート", file: "landmark_12_2.jpg"}], bg: "#2a5953", ferryNext: null },
@@ -330,7 +334,9 @@ soundBtn.addEventListener('click', (e) => {
   if (isAudioEnabled) {
     soundBtn.textContent = "🔊 BGM: ON";
     soundBtn.style.color = "#fff";
-    startBGM();
+    if (!isClear && !isFerryScene && !isGameOver && !isGrandGoal) {
+      startBGM();
+    }
   } else {
     soundBtn.textContent = "🔇 BGM: OFF";
     soundBtn.style.color = "#888";
@@ -357,6 +363,9 @@ function getImage(src, fallbackSrc = null) {
 }
 const bikeImg = getImage(ASSET_PATHS.bike);
 
+// アイキャッチ画像のプリロード
+ASSET_PATHS.eyecatches.forEach(url => getImage(url));
+
 let currentStageIndex = 0;
 let stageTime = 30.0;
 let lastTime = 0;
@@ -365,6 +374,7 @@ let isClear = false;
 let isFerryScene = false;
 let isGrandGoal = false;
 let transitionLockTimer = 0;
+let activeEyecatchSrc = null; // 現在のクリア画面で選ばれたアイキャッチ画像
 
 const player = {
   x: canvas.width / 2 - 18,
@@ -443,6 +453,7 @@ function resetStage(stageIndex) {
   isClear = false;
   isFerryScene = false;
   isGrandGoal = false;
+  activeEyecatchSrc = null;
   transitionLockTimer = 0.35;
   obstacles = [];
   roadSigns = [];
@@ -470,11 +481,18 @@ function resetStage(stageIndex) {
   });
   cur.landmarks.forEach(lm => getImage(ASSET_PATHS.landmarks + lm.file));
 
+  // 走行再開時にBGMスタート
+  if (isAudioEnabled) {
+    startBGM();
+  }
+
   updateAchievementUI();
 }
 
 window.addEventListener('keydown', (e) => {
-  if (isAudioEnabled && !bgmTimer) startBGM();
+  if (isAudioEnabled && !bgmTimer && !isClear && !isFerryScene && !isGameOver && !isGrandGoal) {
+    startBGM();
+  }
   if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') player.moveLeft = true;
   if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') player.moveRight = true;
 });
@@ -485,16 +503,23 @@ window.addEventListener('keyup', (e) => {
 
 const btnLeft = document.getElementById('btn-left');
 const btnRight = document.getElementById('btn-right');
-btnLeft.addEventListener('pointerdown', (e) => { e.preventDefault(); if (isAudioEnabled && !bgmTimer) startBGM(); player.moveLeft = true; });
+btnLeft.addEventListener('pointerdown', (e) => {
+  e.preventDefault();
+  if (isAudioEnabled && !bgmTimer && !isClear && !isFerryScene && !isGameOver && !isGrandGoal) startBGM();
+  player.moveLeft = true;
+});
 btnLeft.addEventListener('pointerup', (e) => { e.preventDefault(); player.moveLeft = false; });
 btnLeft.addEventListener('pointerleave', () => player.moveLeft = false);
-btnRight.addEventListener('pointerdown', (e) => { e.preventDefault(); if (isAudioEnabled && !bgmTimer) startBGM(); player.moveRight = true; });
+btnRight.addEventListener('pointerdown', (e) => {
+  e.preventDefault();
+  if (isAudioEnabled && !bgmTimer && !isClear && !isFerryScene && !isGameOver && !isGrandGoal) startBGM();
+  player.moveRight = true;
+});
 btnRight.addEventListener('pointerup', (e) => { e.preventDefault(); player.moveRight = false; });
 btnRight.addEventListener('pointerleave', () => player.moveRight = false);
 
 function handleCanvasPointer(e) {
   e.preventDefault();
-  if (isAudioEnabled && !bgmTimer) startBGM();
 
   if (isGameOver || isClear || isFerryScene || isGrandGoal) {
     if (transitionLockTimer > 0) return;
@@ -511,6 +536,8 @@ function handleCanvasPointer(e) {
     }
     return;
   }
+
+  if (isAudioEnabled && !bgmTimer) startBGM();
 
   const rect = canvas.getBoundingClientRect();
   const touchX = e.clientX - rect.left;
@@ -555,6 +582,13 @@ function update(dt) {
     saveStageClear(stages[currentStageIndex].id);
     updateAchievementUI();
     transitionLockTimer = 0.4;
+
+    // タップ待ち間はBGMストップ
+    stopBGM();
+
+    // アイキャッチ画像のランダム選出
+    const randomIdx = Math.floor(Math.random() * ASSET_PATHS.eyecatches.length);
+    activeEyecatchSrc = ASSET_PATHS.eyecatches[randomIdx];
 
     if (currentStageIndex === stages.length - 1) {
       isGrandGoal = true;
@@ -654,6 +688,7 @@ function update(dt) {
     ) {
       isGameOver = true;
       transitionLockTimer = 0.4;
+      stopBGM();
     }
 
     if (obs.y > canvas.height + 55) obstacles.splice(i, 1);
@@ -752,19 +787,7 @@ function render() {
   } else if (isFerryScene) {
     renderFerryScene();
   } else if (isClear) {
-    ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = "#4caf50";
-    ctx.font = "bold 24px sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText(`${stages[currentStageIndex].name} 制覇！`, canvas.width / 2, canvas.height / 2 - 30);
-    ctx.fillStyle = "#ffca28";
-    ctx.font = "bold 16px sans-serif";
-    const nextPref = stages[currentStageIndex + 1]?.name || "";
-    ctx.fillText(`NEXT ➔ ${nextPref}`, canvas.width / 2, canvas.height / 2 + 5);
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "14px sans-serif";
-    ctx.fillText("画面タップで次へ", canvas.width / 2, canvas.height / 2 + 40);
+    renderClearScene();
   } else if (isGrandGoal) {
     renderGrandGoal();
   }
@@ -798,7 +821,6 @@ function renderMotorcycle(x, y, w, h) {
   }
 }
 
-// ポラロイド写真描画（写真下部にランドマーク名と都道府県名を明瞭に表示）
 function drawSnapShot() {
   ctx.save();
   const posX = canvas.width - 85;
@@ -810,7 +832,6 @@ function drawSnapShot() {
   ctx.translate(posX, posY);
   ctx.rotate(photoOverlay.angle);
 
-  // ポラロイド台紙
   ctx.fillStyle = "#ffffff";
   ctx.shadowColor = "rgba(0,0,0,0.5)";
   ctx.shadowBlur = 12;
@@ -818,7 +839,6 @@ function drawSnapShot() {
   ctx.fillRect(-photoW / 2, -photoH / 2, photoW, photoH);
   ctx.shadowColor = "transparent";
 
-  // 写真エリア（4:3比率）
   const innerMargin = 7;
   const innerW = photoW - innerMargin * 2;
   const innerH = 88;
@@ -837,21 +857,67 @@ function drawSnapShot() {
     ctx.fillText("📷", 0, -photoH / 2 + 50);
   }
 
-  // 枠下部エリア：ランドマーク名称（太字）
   ctx.fillStyle = "#1a1a1a";
   ctx.font = "bold 11px sans-serif";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  // 長い名称は切り詰め
   const displayLm = photoOverlay.landmarkName.length > 9 ? photoOverlay.landmarkName.substring(0, 8) + '…' : photoOverlay.landmarkName;
   ctx.fillText(displayLm, 0, photoH / 2 - 25);
 
-  // 枠最下部：都道府県キャプション
   ctx.fillStyle = "#616161";
   ctx.font = "italic 9px sans-serif";
   ctx.fillText(`Passing by ${photoOverlay.title}`, 0, photoH / 2 - 10);
 
   ctx.restore();
+}
+
+// アイキャッチ画像付きのクリアリザルト描画
+function renderClearScene() {
+  // 1. アイキャッチ画像の描画（全面カバー）
+  if (activeEyecatchSrc) {
+    const eyecatchImg = getImage(activeEyecatchSrc);
+    if (eyecatchImg.complete && eyecatchImg.naturalWidth !== 0) {
+      // 縦横比を保ちつつCanvas全体をカバーするトリミング描画
+      const imgW = eyecatchImg.naturalWidth;
+      const imgH = eyecatchImg.naturalHeight;
+      const scale = Math.max(canvas.width / imgW, canvas.height / imgH);
+      const dw = imgW * scale;
+      const dh = imgH * scale;
+      const dx = (canvas.width - dw) / 2;
+      const dy = (canvas.height - dh) / 2;
+      ctx.drawImage(eyecatchImg, dx, dy, dw, dh);
+    } else {
+      ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+  }
+
+  // 2. 下部の半透明帯オーバーレイ
+  const bannerH = 190;
+  const bannerY = canvas.height - bannerH;
+  const grad = ctx.createLinearGradient(0, bannerY - 30, 0, bannerY + 20);
+  grad.addColorStop(0, "rgba(0, 0, 0, 0)");
+  grad.addColorStop(1, "rgba(0, 0, 0, 0.88)");
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, bannerY - 30, canvas.width, 50);
+
+  ctx.fillStyle = "rgba(0, 0, 0, 0.88)";
+  ctx.fillRect(0, bannerY + 20, canvas.width, bannerH - 20);
+
+  // 3. テキスト表示
+  ctx.fillStyle = "#4caf50";
+  ctx.font = "bold 26px sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText(`${stages[currentStageIndex].name} 制覇！`, canvas.width / 2, bannerY + 45);
+
+  ctx.fillStyle = "#ffca28";
+  ctx.font = "bold 17px sans-serif";
+  const nextPref = stages[currentStageIndex + 1]?.name || "";
+  ctx.fillText(`NEXT ➔ ${nextPref}`, canvas.width / 2, bannerY + 85);
+
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "14px sans-serif";
+  ctx.fillText("画面タップで出走", canvas.width / 2, bannerY + 125);
 }
 
 function renderFerryScene() {
