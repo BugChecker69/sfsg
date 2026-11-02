@@ -224,7 +224,7 @@ const stages = [
   { id: 18, name: "長野県", capital: "長野市", cities: ["松本市", "上田市"], items: [{name: "信州そば", file: "item_20_1.png"}, {name: "おやき", file: "item_20_2.png"}], landmarks: [{name: "善光寺", file: "landmark_20_1.jpg"}, {name: "松本城", file: "landmark_20_2.jpg"}], bg: "#395b44", ferryNext: null },
   { id: 19, name: "富山県", capital: "富山市", cities: ["高岡市", "射水市"], items: [{name: "白えび", file: "item_16_1.png"}, {name: "ます寿司", file: "item_16_2.png"}], landmarks: [{name: "立山黒部アルペンルート", file: "landmark_16_1.jpg"}, {name: "黒部ダム", file: "landmark_16_2.jpg"}], bg: "#2c5364", ferryNext: null },
   { id: 20, name: "石川県", capital: "金沢市", cities: ["白山市", "小松市"], items: [{name: "金沢カレー", file: "item_17_1.png"}, {name: "加賀友禅", file: "item_17_2.png"}], landmarks: [{name: "兼六園", file: "landmark_17_1.jpg"}, {name: "金沢21世紀美術館", file: "landmark_17_2.jpg"}], bg: "#4a5335", ferryNext: null },
-  { id: 21, name: "福井県", capital: "福井市", cities: ["坂井市", "越前市"], items: [{name: "越前ガニ", file: "item_0_2.png"}, {name: "越前そば", file: "item_18_2.png"}], landmarks: [{name: "東尋坊", file: "landmark_18_1.jpg"}, {name: "福井県立恐竜博物館", file: "landmark_18_2.jpg"}], bg: "#36594f", ferryNext: null },
+  { id: 21, name: "福井県", capital: "福井市", cities: ["坂井市", "越前市"], items: [{name: "越前がに", file: "item_0_2.png"}, {name: "越前そば", file: "item_18_2.png"}], landmarks: [{name: "東尋坊", file: "landmark_18_1.jpg"}, {name: "福井県立恐竜博物館", file: "landmark_18_2.jpg"}], bg: "#36594f", ferryNext: null },
   { id: 22, name: "岐阜県", capital: "岐阜市", cities: ["大垣市", "各務原市"], items: [{name: "飛騨牛", file: "item_0_1.png"}, {name: "栗きんとん", file: "item_21_2.png"}], landmarks: [{name: "白川郷合掌造り集落", file: "landmark_21_1.jpg"}, {name: "岐阜城", file: "landmark_21_2.jpg"}], bg: "#3d5a3d", ferryNext: null },
   { id: 23, name: "愛知県", capital: "名古屋市", cities: ["豊田市", "一宮市"], items: [{name: "ひつまぶし", file: "item_23_1.png"}, {name: "味噌カツ", file: "item_23_2.png"}], landmarks: [{name: "名古屋城", file: "landmark_23_1.jpg"}, {name: "熱田神宮", file: "landmark_23_2.jpg"}], bg: "#4d4d4d", ferryNext: null },
   { id: 24, name: "三重県", capital: "津市", cities: ["四日市市", "鈴鹿市"], items: [{name: "松阪牛", file: "item_0_1.png"}, {name: "伊勢えび", file: "item_24_2.png"}], landmarks: [{name: "伊勢神宮", file: "landmark_24_1.jpg"}, {name: "志摩スペイン村", file: "landmark_24_2.jpg"}], bg: "#345b52", ferryNext: null },
@@ -264,7 +264,7 @@ const soundBtn = document.getElementById('sound-btn');
 const STORAGE_KEY = '47touring_cleared_route';
 
 // -------------------------------------------------------------
-// Web Audio API：BGM・朝の静けさ・ジングル・フェリー音・ファンファーレ
+// Web Audio API：走行BGM・朝の静けさ・ジングル・フェリー音・ファンファーレ
 // -------------------------------------------------------------
 let audioCtx = null;
 let bgmTimer = null;
@@ -272,7 +272,7 @@ let morningBgmTimer = null;
 let ferryMelodyTimer = null;
 let isAudioEnabled = true;
 
-// 走行用 80s ドライブBGM
+// 走行用ドライブBGM
 const BGM_NOTES = [
   587.33, 739.99, 880.00, 739.99,  554.37, 739.99, 880.00, 739.99,
   493.88, 739.99, 880.00, 739.99,  392.00, 587.33, 783.99, 587.33,
@@ -318,7 +318,7 @@ function playSynthTone(freq, type, duration, vol, startTime) {
   osc.stop(startTime + duration);
 }
 
-// 走行用ドライブBGMスケジューラ
+// 走行用ドライブBGM
 function scheduleBGM() {
   if (!isAudioEnabled || !audioCtx) return;
   const now = audioCtx.currentTime;
@@ -348,7 +348,7 @@ function stopBGM() {
   bgmTimer = null;
 }
 
-// 朝の静けさBGMスケジューラ（柔らかなサイン波と三角波のアンサンブル）
+// 朝の静けさBGM
 function scheduleMorningBGM() {
   if (!isAudioEnabled || !audioCtx) return;
   const now = audioCtx.currentTime;
@@ -497,7 +497,8 @@ const eyecatchStartImg = getImage(ASSET_PATHS.eyecatchStart);
 const eyecatchFerryImg = getImage(ASSET_PATHS.eyecatchFerry);
 const eyecatchGoalImg = getImage(ASSET_PATHS.eyecatchGoal);
 
-let isTitleScreen = true; // スタート待機タイトル画面
+let isTitleScreen = true;
+let titleAudioStarted = false; // 1回目タップで朝BGM開始、2回目で出走
 let currentStageIndex = 0;
 let stageTime = 30.0;
 let lastTime = 0;
@@ -563,6 +564,7 @@ function updateAchievementUI() {
     badge.addEventListener('click', (e) => {
       e.stopPropagation();
       isTitleScreen = false;
+      stopMorningBGM();
       resetStage(idx);
     });
     prefGridEl.appendChild(badge);
@@ -623,8 +625,15 @@ function resetStage(stageIndex) {
 
 window.addEventListener('keydown', (e) => {
   if (isTitleScreen) {
-    isTitleScreen = false;
-    resetStage(0);
+    initAudio();
+    if (!titleAudioStarted) {
+      titleAudioStarted = true;
+      startMorningBGM();
+    } else {
+      stopMorningBGM();
+      isTitleScreen = false;
+      resetStage(0);
+    }
     return;
   }
   if (isAudioEnabled && !bgmTimer && !isClear && !isFerryScene && !isGameOver && !isGrandGoal) {
@@ -643,8 +652,15 @@ const btnRight = document.getElementById('btn-right');
 btnLeft.addEventListener('pointerdown', (e) => {
   e.preventDefault();
   if (isTitleScreen) {
-    isTitleScreen = false;
-    resetStage(0);
+    initAudio();
+    if (!titleAudioStarted) {
+      titleAudioStarted = true;
+      startMorningBGM();
+    } else {
+      stopMorningBGM();
+      isTitleScreen = false;
+      resetStage(0);
+    }
     return;
   }
   if (isAudioEnabled && !bgmTimer && !isClear && !isFerryScene && !isGameOver && !isGrandGoal) startBGM();
@@ -656,8 +672,15 @@ btnLeft.addEventListener('pointerleave', () => player.moveLeft = false);
 btnRight.addEventListener('pointerdown', (e) => {
   e.preventDefault();
   if (isTitleScreen) {
-    isTitleScreen = false;
-    resetStage(0);
+    initAudio();
+    if (!titleAudioStarted) {
+      titleAudioStarted = true;
+      startMorningBGM();
+    } else {
+      stopMorningBGM();
+      isTitleScreen = false;
+      resetStage(0);
+    }
     return;
   }
   if (isAudioEnabled && !bgmTimer && !isClear && !isFerryScene && !isGameOver && !isGrandGoal) startBGM();
@@ -666,14 +689,23 @@ btnRight.addEventListener('pointerdown', (e) => {
 btnRight.addEventListener('pointerup', (e) => { e.preventDefault(); player.moveRight = false; });
 btnRight.addEventListener('pointerleave', () => player.moveRight = false);
 
+// 画面タッチ・タップ処理
 canvas.addEventListener('pointerdown', (e) => {
   e.preventDefault();
 
-  // タイトル画面タップで出走開始
+  // タイトル画面時の判定（1回目で朝BGM鳴動、2回目で出走）
   if (isTitleScreen) {
-    isTitleScreen = false;
-    resetStage(0);
-    return;
+    initAudio();
+    if (!titleAudioStarted) {
+      titleAudioStarted = true;
+      startMorningBGM();
+      return;
+    } else {
+      stopMorningBGM();
+      isTitleScreen = false;
+      resetStage(0);
+      return;
+    }
   }
 
   // 静止・リザルト画面での遷移処理
@@ -713,13 +745,6 @@ window.addEventListener('pointerup', () => {
     player.moveRight = false;
   }
 });
-
-// 起動時の初期化および朝BGM開始リスナー
-window.addEventListener('pointerdown', () => {
-  if (isTitleScreen && isAudioEnabled && !morningBgmTimer) {
-    startMorningBGM();
-  }
-}, { once: false });
 
 function gameLoop(timestamp) {
   if (!lastTime) lastTime = timestamp;
@@ -832,6 +857,7 @@ function update(dt) {
     const obs = obstacles[i];
     obs.y += obs.speed * dt;
 
+    // バイク車体コアに合わせた当たり判定（車体の30%前方シフトに追従）
     const forwardOffset = player.height * 0.3;
     const pBox = {
       x: player.x + 10,
@@ -1068,7 +1094,7 @@ function drawCoverImage(img) {
   return false;
 }
 
-// 朝焼けのスタート待機画面（eyecatch_00.jpg 全面描画）
+// 朝焼けのスタート待機画面（eyecatch_00.jpg）
 function renderTitleScreen() {
   if (!drawCoverImage(eyecatchStartImg)) {
     ctx.fillStyle = "#2c3e50";
@@ -1097,7 +1123,11 @@ function renderTitleScreen() {
 
   ctx.fillStyle = "#81c784";
   ctx.font = "bold 16px sans-serif";
-  ctx.fillText("画面タップで出走", canvas.width / 2, bannerY + 125);
+  if (!titleAudioStarted) {
+    ctx.fillText("画面タップでBGM開始", canvas.width / 2, bannerY + 125);
+  } else {
+    ctx.fillText("もう一度タップで出走！", canvas.width / 2, bannerY + 125);
+  }
 }
 
 function renderClearScene() {
