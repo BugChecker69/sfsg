@@ -193,52 +193,53 @@ const ASSET_PATHS = {
   landmarks: `${BASE_URL}/landmarks/`
 };
 
+// 最新CSVに基づく全47都道府県の厳密バインドデータ
 const stages = [
   { id: 1, name: "東京都", capital: "新宿区", cities: ["八王子市", "町田市"], items: [{name: "もんじゃ焼き", file: "item_13_1.png"}, {name: "江戸切子", file: "item_13_2.png"}], landmarks: [{name: "東京タワー", file: "landmark_13_1.jpg"}, {name: "浅草寺", file: "landmark_13_2.jpg"}], bg: "#3a3a3a", ferryNext: null },
-  { id: 2, name: "千葉県", capital: "千葉市", cities: ["船橋市", "松戸市"], items: [{name: "落花生", file: "item_12_1.png"}, {name: "びわ", file: "item_12_2.png"}], landmarks: [{name: "成田山新勝寺", file: "landmark_12_1.jpg"}, {name: "鴨川シーワールド", file: "landmark_12_2.jpg"}], bg: "#2a5953", ferryNext: null },
-  { id: 3, name: "茨城県", capital: "水戸市", cities: ["つくば市", "日立市"], items: [{name: "納豆", file: "item_8_1.png"}, {name: "干し芋", file: "item_8_2.png"}], landmarks: [{name: "国営ひたち海浜公園", file: "landmark_8_1.jpg"}, {name: "偕楽園", file: "landmark_8_2.jpg"}], bg: "#4a6344", ferryNext: null },
-  { id: 4, name: "福島県", capital: "福島市", cities: ["いわき市", "郡山市"], items: [{name: "喜多方ラーメン", file: "item_7_1.png"}, {name: "桃", file: "item_7_2.png"}], landmarks: [{name: "鶴ヶ城", file: "landmark_7_1.jpg"}, {name: "大内宿", file: "landmark_7_2.jpg"}], bg: "#385e38", ferryNext: null },
+  { id: 2, name: "千葉県", capital: "千葉市", cities: ["船橋市", "松戸市"], items: [{name: "落花生", file: "item_12_1.png"}, {name: "びわ", file: "item_12_2.png"}], landmarks: [{name: "成田山新勝寺", file: "landmark_12_1.jpg"}, {name: "東京ディズニーリゾート", file: "landmark_12_2.jpg"}], bg: "#2a5953", ferryNext: null },
+  { id: 3, name: "茨城県", capital: "水戸市", cities: ["つくば市", "日立市"], items: [{name: "納豆", file: "item_8_1.png"}, {name: "干し芋", file: "item_8_2.png"}], landmarks: [{name: "偕楽園", file: "landmark_8_1.jpg"}, {name: "国営ひたち海浜公園", file: "landmark_8_2.jpg"}], bg: "#4a6344", ferryNext: null },
+  { id: 4, name: "福島県", capital: "福島市", cities: ["いわき市", "郡山市"], items: [{name: "桃", file: "item_7_1.png"}, {name: "喜多方ラーメン", file: "item_7_2.png"}], landmarks: [{name: "大内宿", file: "landmark_7_1.jpg"}, {name: "鶴ヶ城", file: "landmark_7_2.jpg"}], bg: "#385e38", ferryNext: null },
   { id: 5, name: "宮城県", capital: "仙台市", cities: ["石巻市", "大崎市"], items: [{name: "牛タン", file: "item_4_1.png"}, {name: "笹かまぼこ", file: "item_4_2.png"}], landmarks: [{name: "仙台城跡", file: "landmark_4_1.jpg"}, {name: "松島", file: "landmark_4_2.jpg"}], bg: "#2e5339", ferryNext: null },
   { id: 6, name: "岩手県", capital: "盛岡市", cities: ["一関市", "奥州市"], items: [{name: "わんこそば", file: "item_3_1.png"}, {name: "南部鉄器", file: "item_3_2.png"}], landmarks: [{name: "中尊寺金色堂", file: "landmark_3_1.jpg"}, {name: "小岩井農場", file: "landmark_3_2.jpg"}], bg: "#3a5f43", ferryNext: null },
   { id: 7, name: "青森県", capital: "青森市", cities: ["八戸市", "弘前市"], items: [{name: "りんご", file: "item_2_1.png"}, {name: "にんにく", file: "item_2_2.png"}], landmarks: [{name: "弘前城", file: "landmark_2_1.jpg"}, {name: "白神山地", file: "landmark_2_2.jpg"}], bg: "#355e3b", ferryNext: "青函フェリー（青森港 ➔ 函館港）" },
   { id: 8, name: "北海道", capital: "札幌市", cities: ["旭川市", "函館市"], items: [{name: "海鮮丼", file: "item_1_1.png"}, {name: "ジンギスカン", file: "item_1_2.png"}], landmarks: [{name: "五稜郭", file: "landmark_1_1.jpg"}, {name: "札幌市時計台", file: "landmark_1_2.jpg"}], bg: "#2d5a27", ferryNext: "新日本海フェリー（小樽/苫小牧 ➔ 秋田港）" },
   { id: 9, name: "秋田県", capital: "秋田市", cities: ["横手市", "大仙市"], items: [{name: "きりたんぽ", file: "item_5_1.png"}, {name: "比内地鶏", file: "item_5_2.png"}], landmarks: [{name: "田沢湖", file: "landmark_5_1.jpg"}, {name: "角館武家屋敷通り", file: "landmark_5_2.jpg"}], bg: "#3b5e4f", ferryNext: null },
-  { id: 10, name: "山形県", capital: "山形市", cities: ["鶴岡市", "酒田市"], items: [{name: "さくらんぼ", file: "item_6_1.png"}, {name: "米沢牛", file: "item_6_2.png"}], landmarks: [{name: "山寺", file: "landmark_6_1.jpg"}, {name: "銀山温泉", file: "landmark_6_2.jpg"}], bg: "#436b44", ferryNext: null },
-  { id: 11, name: "新潟県", capital: "新潟市", cities: ["長岡市", "上越市"], items: [{name: "笹団子", file: "item_15_1.png"}, {name: "へぎそば", file: "item_15_2.png"}], landmarks: [{name: "清津峡", file: "landmark_15_1.jpg"}, {name: "佐渡金山", file: "landmark_15_2.jpg"}], bg: "#3e5c52", ferryNext: null },
-  { id: 12, name: "群馬県", capital: "前橋市", cities: ["高崎市", "太田市"], items: [{name: "焼きまんじゅう", file: "item_10_1.png"}, {name: "水沢うどん", file: "item_10_2.png"}], landmarks: [{name: "草津温泉", file: "landmark_10_1.jpg"}, {name: "富岡製糸場", file: "landmark_10_2.jpg"}], bg: "#476043", ferryNext: null },
+  { id: 10, name: "山形県", capital: "山形市", cities: ["鶴岡市", "酒田市"], items: [{name: "さくらんぼ", file: "item_6_1.png"}, {name: "米沢牛", file: "item_0_1.png"}], landmarks: [{name: "山寺（立石寺）", file: "landmark_6_1.jpg"}, {name: "蔵王温泉大露天風呂", file: "landmark_6_2.jpg"}], bg: "#436b44", ferryNext: null },
+  { id: 11, name: "新潟県", capital: "新潟市", cities: ["長岡市", "上越市"], items: [{name: "魚沼産コシヒカリ", file: "item_0_4.png"}, {name: "笹団子", file: "item_15_2.png"}], landmarks: [{name: "弥彦神社", file: "landmark_15_1.jpg"}, {name: "清津峡渓谷トンネル", file: "landmark_15_2.jpg"}], bg: "#3e5c52", ferryNext: null },
+  { id: 12, name: "群馬県", capital: "前橋市", cities: ["高崎市", "太田市"], items: [{name: "焼きまんじゅう", file: "item_10_1.png"}, {name: "下仁田ねぎ", file: "item_10_2.png"}], landmarks: [{name: "草津温泉", file: "landmark_10_1.jpg"}, {name: "富岡製糸場", file: "landmark_10_2.jpg"}], bg: "#476043", ferryNext: null },
   { id: 13, name: "栃木県", capital: "宇都宮市", cities: ["小山市", "栃木市"], items: [{name: "宇都宮餃子", file: "item_9_1.png"}, {name: "とちおとめ", file: "item_9_2.png"}], landmarks: [{name: "日光東照宮", file: "landmark_9_1.jpg"}, {name: "華厳の滝", file: "landmark_9_2.jpg"}], bg: "#3c5c3c", ferryNext: null },
   { id: 14, name: "埼玉県", capital: "さいたま市", cities: ["川口市", "川越市"], items: [{name: "草加煎餅", file: "item_11_1.png"}, {name: "深谷ねぎ", file: "item_11_2.png"}], landmarks: [{name: "川越の時の鐘", file: "landmark_11_1.jpg"}, {name: "鉄道博物館", file: "landmark_11_2.jpg"}], bg: "#495b45", ferryNext: null },
-  { id: 15, name: "山梨県", capital: "甲府市", cities: ["甲斐市", "南アルプス市"], items: [{name: "ほうとう", file: "item_19_1.png"}, {name: "ぶどう", file: "item_19_2.png"}], landmarks: [{name: "富士山", file: "landmark_19_1.jpg"}, {name: "河口湖", file: "landmark_19_2.jpg"}], bg: "#4a4e69", ferryNext: null },
-  { id: 16, name: "神奈川県", capital: "横浜市", cities: ["川崎市", "相模原市"], items: [{name: "シュウマイ", file: "item_14_1.png"}, {name: "鳩サブレ", file: "item_14_2.png"}], landmarks: [{name: "横浜赤レンガ倉庫", file: "landmark_14_1.jpg"}, {name: "鶴岡八幡宮", file: "landmark_14_2.jpg"}], bg: "#2a4d69", ferryNext: null },
-  { id: 17, name: "静岡県", capital: "静岡市", cities: ["浜松市", "富士市"], items: [{name: "静岡茶", file: "item_22_1.png"}, {name: "浜松餃子", file: "item_22_2.png"}], landmarks: [{name: "三保の松原", file: "landmark_22_1.jpg"}, {name: "白糸の滝", file: "landmark_22_2.jpg"}], bg: "#2f5c4f", ferryNext: null },
-  { id: 18, name: "長野県", capital: "長野市", cities: ["松本市", "上田市"], items: [{name: "信州そば", file: "item_20_1.png"}, {name: "おやき", file: "item_20_2.png"}], landmarks: [{name: "松本城", file: "landmark_20_1.jpg"}, {name: "善光寺", file: "landmark_20_2.jpg"}], bg: "#395b44", ferryNext: null },
-  { id: 19, name: "富山県", capital: "富山市", cities: ["高岡市", "射水市"], items: [{name: "ます寿司", file: "item_16_1.png"}, {name: "白えび", file: "item_16_2.png"}], landmarks: [{name: "黒部ダム", file: "landmark_16_1.jpg"}, {name: "雨晴海岸", file: "landmark_16_2.jpg"}], bg: "#2c5364", ferryNext: null },
+  { id: 15, name: "山梨県", capital: "甲府市", cities: ["甲斐市", "南アルプス市"], items: [{name: "甲州ぶどう", file: "item_19_1.png"}, {name: "ほうとう", file: "item_19_2.png"}], landmarks: [{name: "河口湖", file: "landmark_19_1.jpg"}, {name: "富士急ハイランド", file: "landmark_19_2.jpg"}], bg: "#4a4e69", ferryNext: null },
+  { id: 16, name: "神奈川県", capital: "横浜市", cities: ["川崎市", "相模原市"], items: [{name: "崎陽軒のシウマイ", file: "item_14_1.png"}, {name: "鳩サブレー", file: "item_14_2.png"}], landmarks: [{name: "横浜みなとみらい21", file: "landmark_14_1.jpg"}, {name: "鶴岡八幡宮", file: "landmark_14_2.jpg"}], bg: "#2a4d69", ferryNext: null },
+  { id: 17, name: "静岡県", capital: "静岡市", cities: ["浜松市", "富士市"], items: [{name: "静岡茶", file: "item_0_3.png"}, {name: "浜松餃子", file: "item_22_2.png"}], landmarks: [{name: "三保松原", file: "landmark_22_1.jpg"}, {name: "白糸の滝", file: "landmark_22_2.jpg"}], bg: "#2f5c4f", ferryNext: null },
+  { id: 18, name: "長野県", capital: "長野市", cities: ["松本市", "上田市"], items: [{name: "信州そば", file: "item_20_1.png"}, {name: "おやき", file: "item_20_2.png"}], landmarks: [{name: "善光寺", file: "landmark_20_1.jpg"}, {name: "松本城", file: "landmark_20_2.jpg"}], bg: "#395b44", ferryNext: null },
+  { id: 19, name: "富山県", capital: "富山市", cities: ["高岡市", "射水市"], items: [{name: "白えび", file: "item_16_1.png"}, {name: "ます寿司", file: "item_16_2.png"}], landmarks: [{name: "立山黒部アルペンルート", file: "landmark_16_1.jpg"}, {name: "黒部ダム", file: "landmark_16_2.jpg"}], bg: "#2c5364", ferryNext: null },
   { id: 20, name: "石川県", capital: "金沢市", cities: ["白山市", "小松市"], items: [{name: "金沢カレー", file: "item_17_1.png"}, {name: "加賀友禅", file: "item_17_2.png"}], landmarks: [{name: "兼六園", file: "landmark_17_1.jpg"}, {name: "金沢21世紀美術館", file: "landmark_17_2.jpg"}], bg: "#4a5335", ferryNext: null },
-  { id: 21, name: "福井県", capital: "福井市", cities: ["坂井市", "越前市"], items: [{name: "越前ガニ", file: "item_18_1.png"}, {name: "ソースカツ丼", file: "item_18_2.png"}], landmarks: [{name: "東尋坊", file: "landmark_18_1.jpg"}, {name: "永平寺", file: "landmark_18_2.jpg"}], bg: "#36594f", ferryNext: null },
-  { id: 22, name: "岐阜県", capital: "岐阜市", cities: ["大垣市", "各務原市"], items: [{name: "飛騨牛", file: "item_21_1.png"}, {name: "栗きんとん", file: "item_21_2.png"}], landmarks: [{name: "白川郷", file: "landmark_21_1.jpg"}, {name: "岐阜城", file: "landmark_21_2.jpg"}], bg: "#3d5a3d", ferryNext: null },
-  { id: 23, name: "愛知県", capital: "名古屋市", cities: ["豊田市", "一宮市"], items: [{name: "ひつまぶし", file: "item_23_1.png"}, {name: "手羽先", file: "item_23_2.png"}], landmarks: [{name: "名古屋城", file: "landmark_23_1.jpg"}, {name: "熱田神宮", file: "landmark_23_2.jpg"}], bg: "#4d4d4d", ferryNext: null },
-  { id: 24, name: "三重県", capital: "津市", cities: ["四日市市", "鈴鹿市"], items: [{name: "松阪牛", file: "item_24_1.png"}, {name: "伊勢うどん", file: "item_24_2.png"}], landmarks: [{name: "伊勢神宮", file: "landmark_24_1.jpg"}, {name: "鳥羽水族館", file: "landmark_24_2.jpg"}], bg: "#345b52", ferryNext: null },
-  { id: 25, name: "滋賀県", capital: "大津市", cities: ["草津市", "長浜市"], items: [{name: "近江牛", file: "item_25_1.png"}, {name: "鮒寿司", file: "item_25_2.png"}], landmarks: [{name: "彦根城", file: "landmark_25_1.jpg"}, {name: "琵琶湖", file: "landmark_25_2.jpg"}], bg: "#205072", ferryNext: null },
-  { id: 26, name: "京都府", capital: "京都市", cities: ["宇治市", "亀岡市"], items: [{name: "八ツ橋", file: "item_26_1.png"}, {name: "宇治抹茶", file: "item_26_2.png"}], landmarks: [{name: "金閣寺", file: "landmark_26_1.jpg"}, {name: "伏見稲荷大社", file: "landmark_26_2.jpg"}], bg: "#5c3d46", ferryNext: null },
+  { id: 21, name: "福井県", capital: "福井市", cities: ["坂井市", "越前市"], items: [{name: "越前がに", file: "item_0_2.png"}, {name: "越前そば", file: "item_18_2.png"}], landmarks: [{name: "東尋坊", file: "landmark_18_1.jpg"}, {name: "福井県立恐竜博物館", file: "landmark_18_2.jpg"}], bg: "#36594f", ferryNext: null },
+  { id: 22, name: "岐阜県", capital: "岐阜市", cities: ["大垣市", "各務原市"], items: [{name: "飛騨牛", file: "item_0_1.png"}, {name: "栗きんとん", file: "item_21_2.png"}], landmarks: [{name: "白川郷合掌造り集落", file: "landmark_21_1.jpg"}, {name: "岐阜城", file: "landmark_21_2.jpg"}], bg: "#3d5a3d", ferryNext: null },
+  { id: 23, name: "愛知県", capital: "名古屋市", cities: ["豊田市", "一宮市"], items: [{name: "ひつまぶし", file: "item_23_1.png"}, {name: "味噌カツ", file: "item_23_2.png"}], landmarks: [{name: "名古屋城", file: "landmark_23_1.jpg"}, {name: "熱田神宮", file: "landmark_23_2.jpg"}], bg: "#4d4d4d", ferryNext: null },
+  { id: 24, name: "三重県", capital: "津市", cities: ["四日市市", "鈴鹿市"], items: [{name: "松阪牛", file: "item_0_1.png"}, {name: "伊勢えび", file: "item_24_2.png"}], landmarks: [{name: "伊勢神宮", file: "landmark_24_1.jpg"}, {name: "志摩スペイン村", file: "landmark_24_2.jpg"}], bg: "#345b52", ferryNext: null },
+  { id: 25, name: "滋賀県", capital: "大津市", cities: ["草津市", "長浜市"], items: [{name: "近江牛", file: "item_0_1.png"}, {name: "鮒寿司", file: "item_25_2.png"}], landmarks: [{name: "彦根城", file: "landmark_25_1.jpg"}, {name: "びわ湖テラス", file: "landmark_25_2.jpg"}], bg: "#205072", ferryNext: null },
+  { id: 26, name: "京都府", capital: "京都市", cities: ["宇治市", "亀岡市"], items: [{name: "宇治茶", file: "item_0_3.png"}, {name: "八ツ橋", file: "item_26_2.png"}], landmarks: [{name: "金閣寺", file: "landmark_26_1.jpg"}, {name: "伏見稲荷大社", file: "landmark_26_2.jpg"}], bg: "#5c3d46", ferryNext: null },
   { id: 27, name: "奈良県", capital: "奈良市", cities: ["橿原市", "生駒市"], items: [{name: "柿の葉寿司", file: "item_29_1.png"}, {name: "三輪そうめん", file: "item_29_2.png"}], landmarks: [{name: "東大寺", file: "landmark_29_1.jpg"}, {name: "奈良公園", file: "landmark_29_2.jpg"}], bg: "#534e3e", ferryNext: null },
-  { id: 28, name: "大阪府", capital: "大阪市", cities: ["堺市", "東大阪市"], items: [{name: "たこ焼き", file: "item_27_1.png"}, {name: "お好み焼き", file: "item_27_2.png"}], landmarks: [{name: "大阪城", file: "landmark_27_1.jpg"}, {name: "道頓堀", file: "landmark_27_2.jpg"}], bg: "#484848", ferryNext: null },
-  { id: 29, name: "和歌山県", capital: "和歌山市", cities: ["田辺市", "橋本市"], items: [{name: "紀州南高梅", file: "item_30_1.png"}, {name: "和歌山ラーメン", file: "item_30_2.png"}], landmarks: [{name: "高野山", file: "landmark_30_1.jpg"}, {name: "那智の滝", file: "landmark_30_2.jpg"}], bg: "#325850", ferryNext: "南海フェリー（和歌山港 ➔ 徳島港）" },
-  { id: 30, name: "徳島県", capital: "徳島市", cities: ["阿南市", "鳴門市"], items: [{name: "徳島ラーメン", file: "item_36_1.png"}, {name: "すだち", file: "item_36_2.png"}], landmarks: [{name: "鳴門の渦潮", file: "landmark_36_1.jpg"}, {name: "大歩危・小歩危", file: "landmark_36_2.jpg"}], bg: "#2f5953", ferryNext: null },
+  { id: 28, name: "大阪府", capital: "大阪市", cities: ["堺市", "東大阪市"], items: [{name: "たこ焼き", file: "item_27_1.png"}, {name: "お好み焼き", file: "item_27_2.png"}], landmarks: [{name: "大阪城", file: "landmark_27_1.jpg"}, {name: "通天閣", file: "landmark_27_2.jpg"}], bg: "#484848", ferryNext: null },
+  { id: 29, name: "和歌山県", capital: "和歌山市", cities: ["田辺市", "橋本市"], items: [{name: "紀州南高梅", file: "item_30_1.png"}, {name: "有田みかん", file: "item_30_2.png"}], landmarks: [{name: "高野山", file: "landmark_30_1.jpg"}, {name: "那智の滝", file: "landmark_30_2.jpg"}], bg: "#325850", ferryNext: "南海フェリー（和歌山港 ➔ 徳島港）" },
+  { id: 30, name: "徳島県", capital: "徳島市", cities: ["阿南市", "鳴門市"], items: [{name: "すだち", file: "item_36_1.png"}, {name: "鳴門金時", file: "item_36_2.png"}], landmarks: [{name: "鳴門の渦潮", file: "landmark_36_1.jpg"}, {name: "祖谷のかずら橋", file: "landmark_36_2.jpg"}], bg: "#2f5953", ferryNext: null },
   { id: 31, name: "高知県", capital: "高知市", cities: ["南国市", "四万十市"], items: [{name: "カツオのたたき", file: "item_39_1.png"}, {name: "文旦", file: "item_39_2.png"}], landmarks: [{name: "桂浜", file: "landmark_39_1.jpg"}, {name: "高知城", file: "landmark_39_2.jpg"}], bg: "#2c5364", ferryNext: null },
   { id: 32, name: "愛媛県", capital: "松山市", cities: ["今治市", "新居浜市"], items: [{name: "道後温泉", file: "item_38_1.png"}, {name: "今治タオル", file: "item_38_2.png"}], landmarks: [{name: "松山城", file: "landmark_38_1.jpg"}, {name: "しまなみ海道", file: "landmark_38_2.jpg"}], bg: "#2e5b66", ferryNext: null },
-  { id: 33, name: "香川県", capital: "高松市", cities: ["丸亀市", "三豊市"], items: [{name: "讃岐うどん", file: "item_37_1.png"}, {name: "骨付鳥", file: "item_37_2.png"}], landmarks: [{name: "栗林公園", file: "landmark_37_1.jpg"}, {name: "金刀比羅宮", file: "landmark_37_2.jpg"}], bg: "#3c584a", ferryNext: null },
-  { id: 34, name: "岡山県", capital: "岡山市", cities: ["倉敷市", "津山市"], items: [{name: "きびだんご", file: "item_33_1.png"}, {name: "白桃", file: "item_33_2.png"}], landmarks: [{name: "倉敷美観地区", file: "landmark_33_1.jpg"}, {name: "岡山後楽園", file: "landmark_33_2.jpg"}], bg: "#3f5e56", ferryNext: null },
-  { id: 35, name: "兵庫県", capital: "神戸市", cities: ["姫路市", "西宮市"], items: [{name: "神戸牛", file: "item_28_1.png"}, {name: "明石焼き", file: "item_28_2.png"}], landmarks: [{name: "姫路城", file: "landmark_28_1.jpg"}, {name: "神戸ポートタワー", file: "landmark_28_2.jpg"}], bg: "#314e52", ferryNext: null },
-  { id: 36, name: "鳥取県", capital: "鳥取市", cities: ["米子市", "倉吉市"], items: [{name: "松葉がに", file: "item_31_1.png"}, {name: "二十世紀梨", file: "item_31_2.png"}], landmarks: [{name: "鳥取砂丘", file: "landmark_31_1.jpg"}, {name: "水木しげるロード", file: "landmark_31_2.jpg"}], bg: "#65593e", ferryNext: null },
+  { id: 33, name: "香川県", capital: "高松市", cities: ["丸亀市", "三豊市"], items: [{name: "讃岐うどん", file: "item_37_1.png"}, {name: "オリーブオイル", file: "item_37_2.png"}], landmarks: [{name: "金刀比羅宮", file: "landmark_37_1.jpg"}, {name: "栗林公園", file: "landmark_37_2.jpg"}], bg: "#3c584a", ferryNext: null },
+  { id: 34, name: "岡山県", capital: "岡山市", cities: ["倉敷市", "津山市"], items: [{name: "白桃", file: "item_33_1.png"}, {name: "マスカット", file: "item_33_2.png"}], landmarks: [{name: "倉敷美観地区", file: "landmark_33_1.jpg"}, {name: "岡山後楽園", file: "landmark_33_2.jpg"}], bg: "#3f5e56", ferryNext: null },
+  { id: 35, name: "兵庫県", capital: "神戸市", cities: ["姫路市", "西宮市"], items: [{name: "神戸牛", file: "item_0_1.png"}, {name: "明石焼", file: "item_28_2.png"}], landmarks: [{name: "姫路城", file: "landmark_28_1.jpg"}, {name: "神戸ポートタワー", file: "landmark_28_2.jpg"}], bg: "#314e52", ferryNext: null },
+  { id: 36, name: "鳥取県", capital: "鳥取市", cities: ["米子市", "倉吉市"], items: [{name: "二十世紀梨", file: "item_31_1.png"}, {name: "松葉がに", file: "item_0_2.png"}], landmarks: [{name: "鳥取砂丘", file: "landmark_31_1.jpg"}, {name: "水木しげるロード", file: "landmark_31_2.jpg"}], bg: "#65593e", ferryNext: null },
   { id: 37, name: "島根県", capital: "松江市", cities: ["出雲市", "浜田市"], items: [{name: "出雲そば", file: "item_32_1.png"}, {name: "しじみ", file: "item_32_2.png"}], landmarks: [{name: "出雲大社", file: "landmark_32_1.jpg"}, {name: "松江城", file: "landmark_32_2.jpg"}], bg: "#4a5342", ferryNext: null },
   { id: 38, name: "広島県", capital: "広島市", cities: ["福山市", "呉市"], items: [{name: "広島風お好み焼き", file: "item_34_1.png"}, {name: "もみじ饅頭", file: "item_34_2.png"}], landmarks: [{name: "原爆ドーム", file: "landmark_34_1.jpg"}, {name: "厳島神社", file: "landmark_34_2.jpg"}], bg: "#4a4f54", ferryNext: null },
   { id: 39, name: "山口県", capital: "山口市", cities: ["下関市", "宇部市"], items: [{name: "ふぐ料理", file: "item_35_1.png"}, {name: "瓦そば", file: "item_35_2.png"}], landmarks: [{name: "角島大橋", file: "landmark_35_1.jpg"}, {name: "錦帯橋", file: "landmark_35_2.jpg"}], bg: "#28586c", ferryNext: null },
   { id: 40, name: "福岡県", capital: "福岡市", cities: ["北九州市", "久留米市"], items: [{name: "辛子明太子", file: "item_40_1.png"}, {name: "博多ラーメン", file: "item_40_2.png"}], landmarks: [{name: "太宰府天満宮", file: "landmark_40_1.jpg"}, {name: "福岡タワー", file: "landmark_40_2.jpg"}], bg: "#3f4f5a", ferryNext: null },
-  { id: 41, name: "佐賀県", capital: "佐賀市", cities: ["唐津市", "鳥栖市"], items: [{name: "佐賀牛", file: "item_41_1.png"}, {name: "有田焼", file: "item_41_2.png"}], landmarks: [{name: "吉野ヶ里歴史公園", file: "landmark_41_1.jpg"}, {name: "呼子朝市", file: "landmark_41_2.jpg"}], bg: "#425642", ferryNext: null },
+  { id: 41, name: "佐賀県", capital: "佐賀市", cities: ["唐津市", "鳥栖市"], items: [{name: "佐賀牛", file: "item_0_1.png"}, {name: "有田焼", file: "item_41_2.png"}], landmarks: [{name: "吉野ヶ里歴史公園", file: "landmark_41_1.jpg"}, {name: "呼子朝市", file: "landmark_41_2.jpg"}], bg: "#425642", ferryNext: null },
   { id: 42, name: "長崎県", capital: "長崎市", cities: ["佐世保市", "諫早市"], items: [{name: "長崎ちゃんぽん", file: "item_42_1.png"}, {name: "カステラ", file: "item_42_2.png"}], landmarks: [{name: "グラバー園", file: "landmark_42_1.jpg"}, {name: "ハウステンボス", file: "landmark_42_2.jpg"}], bg: "#2d5263", ferryNext: null },
   { id: 43, name: "熊本県", capital: "熊本市", cities: ["八代市", "天草市"], items: [{name: "馬刺し", file: "item_43_1.png"}, {name: "からし蓮根", file: "item_43_2.png"}], landmarks: [{name: "熊本城", file: "landmark_43_1.jpg"}, {name: "阿蘇カルデラ", file: "landmark_43_2.jpg"}], bg: "#3b5840", ferryNext: null },
   { id: 44, name: "大分県", capital: "大分市", cities: ["別府市", "中津市"], items: [{name: "とり天", file: "item_44_1.png"}, {name: "かぼす", file: "item_44_2.png"}], landmarks: [{name: "別府地獄めぐり", file: "landmark_44_1.jpg"}, {name: "湯布院金鱗湖", file: "landmark_44_2.jpg"}], bg: "#325b59", ferryNext: null },
-  { id: 45, name: "宮崎県", capital: "宮崎市", cities: ["都城市", "延岡市"], items: [{name: "チキン南蛮", file: "item_45_1.png"}, {name: "宮崎牛", file: "item_45_2.png"}], landmarks: [{name: "高千穂峡", file: "landmark_45_1.jpg"}, {name: "青島", file: "landmark_45_2.jpg"}], bg: "#2b5c4b", ferryNext: null },
+  { id: 45, name: "宮崎県", capital: "宮崎市", cities: ["都城市", "延岡市"], items: [{name: "チキン南蛮", file: "item_45_1.png"}, {name: "宮崎牛", file: "item_beef.png", fallback: "item_0_1.png"}], landmarks: [{name: "高千穂峡", file: "landmark_45_1.jpg"}, {name: "青島", file: "landmark_45_2.jpg"}], bg: "#2b5c4b", ferryNext: null },
   { id: 46, name: "鹿児島県", capital: "鹿児島市", cities: ["霧島市", "鹿屋市"], items: [{name: "黒豚", file: "item_46_1.png"}, {name: "さつま揚げ", file: "item_46_2.png"}], landmarks: [{name: "桜島", file: "landmark_46_1.jpg"}, {name: "仙巌園", file: "landmark_46_2.jpg"}], bg: "#424b54", ferryNext: "奄美・沖縄航路フェリー（鹿児島港 ➔ 那覇港）" },
   { id: 47, name: "沖縄県", capital: "那覇市", cities: ["沖縄市", "うるま市"], items: [{name: "ゴーヤーチャンプルー", file: "item_47_1.png"}, {name: "沖縄そば", file: "item_47_2.png"}], landmarks: [{name: "首里城", file: "landmark_47_1.jpg"}, {name: "美ら海水族館", file: "landmark_47_2.jpg"}], bg: "#1f626c", ferryNext: null }
 ];
@@ -253,7 +254,9 @@ const soundBtn = document.getElementById('sound-btn');
 
 const STORAGE_KEY = '47touring_cleared_route';
 
-// Web Audio API によるBGM
+// -------------------------------------------------------------
+// Web Audio API による Out Run 風 軽快シンセBGM
+// -------------------------------------------------------------
 let audioCtx = null;
 let bgmTimer = null;
 let isAudioEnabled = true;
@@ -335,12 +338,19 @@ soundBtn.addEventListener('click', (e) => {
   }
 });
 
+// -------------------------------------------------------------
 // 画像キャッシュ機構
+// -------------------------------------------------------------
 const imageCache = {};
-function getImage(src) {
+function getImage(src, fallbackSrc = null) {
   if (!imageCache[src]) {
     const img = new Image();
     img.src = src;
+    if (fallbackSrc) {
+      img.onerror = () => {
+        img.src = fallbackSrc;
+      };
+    }
     imageCache[src] = img;
   }
   return imageCache[src];
@@ -354,7 +364,7 @@ let isGameOver = false;
 let isClear = false;
 let isFerryScene = false;
 let isGrandGoal = false;
-let transitionLockTimer = 0; // 画面遷移時の誤タップ防止ロック
+let transitionLockTimer = 0;
 
 const player = {
   x: canvas.width / 2 - 18,
@@ -421,7 +431,7 @@ function triggerSnapShot(landmarkObj) {
   photoOverlay.title = stages[currentStageIndex].name;
   photoOverlay.landmarkName = landmarkObj.name;
   photoOverlay.imgSrc = ASSET_PATHS.landmarks + landmarkObj.file;
-  photoOverlay.timer = 2.2;
+  photoOverlay.timer = 2.4;
   photoOverlay.alpha = 0;
   photoOverlay.angle = (Math.random() - 0.5) * 0.16;
 }
@@ -433,7 +443,7 @@ function resetStage(stageIndex) {
   isClear = false;
   isFerryScene = false;
   isGrandGoal = false;
-  transitionLockTimer = 0.35; // 遷移直後の0.35秒間はタップ入力を受け付けない
+  transitionLockTimer = 0.35;
   obstacles = [];
   roadSigns = [];
   spawnTimer = 0;
@@ -454,13 +464,15 @@ function resetStage(stageIndex) {
   });
 
   const cur = stages[stageIndex];
-  cur.items.forEach(it => getImage(ASSET_PATHS.items + it.file));
+  cur.items.forEach(it => {
+    const fallback = it.fallback ? ASSET_PATHS.items + it.fallback : null;
+    getImage(ASSET_PATHS.items + it.file, fallback);
+  });
   cur.landmarks.forEach(lm => getImage(ASSET_PATHS.landmarks + lm.file));
 
   updateAchievementUI();
 }
 
-// キーボード操作
 window.addEventListener('keydown', (e) => {
   if (isAudioEnabled && !bgmTimer) startBGM();
   if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') player.moveLeft = true;
@@ -471,7 +483,6 @@ window.addEventListener('keyup', (e) => {
   if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') player.moveRight = false;
 });
 
-// 下部ボタン操作
 const btnLeft = document.getElementById('btn-left');
 const btnRight = document.getElementById('btn-right');
 btnLeft.addEventListener('pointerdown', (e) => { e.preventDefault(); if (isAudioEnabled && !bgmTimer) startBGM(); player.moveLeft = true; });
@@ -481,14 +492,12 @@ btnRight.addEventListener('pointerdown', (e) => { e.preventDefault(); if (isAudi
 btnRight.addEventListener('pointerup', (e) => { e.preventDefault(); player.moveRight = false; });
 btnRight.addEventListener('pointerleave', () => player.moveRight = false);
 
-// Canvas上でのタップ・ステア操作（プレイ中は左右タッチ、終了画面では次へ遷移）
 function handleCanvasPointer(e) {
   e.preventDefault();
   if (isAudioEnabled && !bgmTimer) startBGM();
 
-  // リザルト画面での進行処理
   if (isGameOver || isClear || isFerryScene || isGrandGoal) {
-    if (transitionLockTimer > 0) return; // ロック中は無視
+    if (transitionLockTimer > 0) return;
 
     if (isGameOver) {
       resetStage(currentStageIndex);
@@ -503,7 +512,6 @@ function handleCanvasPointer(e) {
     return;
   }
 
-  // プレイ中の左右タップ操作
   const rect = canvas.getBoundingClientRect();
   const touchX = e.clientX - rect.left;
   if (touchX < rect.width / 2) {
@@ -546,7 +554,7 @@ function update(dt) {
     stageTime = 0;
     saveStageClear(stages[currentStageIndex].id);
     updateAchievementUI();
-    transitionLockTimer = 0.4; // 遷移直後の誤入力を防止
+    transitionLockTimer = 0.4;
 
     if (currentStageIndex === stages.length - 1) {
       isGrandGoal = true;
@@ -586,10 +594,10 @@ function update(dt) {
 
   if (photoOverlay.active) {
     photoOverlay.timer -= dt;
-    if (photoOverlay.timer > 1.8) {
+    if (photoOverlay.timer > 2.0) {
       photoOverlay.alpha += dt * 3.5;
       if (photoOverlay.alpha > 1) photoOverlay.alpha = 1;
-    } else if (photoOverlay.timer < 0.4) {
+    } else if (photoOverlay.timer < 0.45) {
       photoOverlay.alpha -= dt * 2.5;
       if (photoOverlay.alpha < 0) photoOverlay.alpha = 0;
     }
@@ -608,6 +616,7 @@ function update(dt) {
     const laneWidth = (roadRight - roadLeft - 44);
     const spawnX = roadLeft + 6 + Math.random() * laneWidth;
     const itemObj = curStage.items[Math.floor(Math.random() * curStage.items.length)];
+    const fallbackSrc = itemObj.fallback ? ASSET_PATHS.items + itemObj.fallback : null;
     obstacles.push({
       x: spawnX,
       y: -50,
@@ -615,6 +624,7 @@ function update(dt) {
       height: 40,
       name: itemObj.name,
       imgSrc: ASSET_PATHS.items + itemObj.file,
+      fallbackSrc: fallbackSrc,
       speed: 210 + (30 - stageTime) * 2
     });
   }
@@ -700,7 +710,7 @@ function render() {
   }
 
   for (const obs of obstacles) {
-    const itemImg = getImage(obs.imgSrc);
+    const itemImg = getImage(obs.imgSrc, obs.fallbackSrc);
     if (itemImg.complete && itemImg.naturalWidth !== 0) {
       ctx.drawImage(itemImg, obs.x, obs.y, obs.width, obs.height);
     } else {
@@ -788,25 +798,28 @@ function renderMotorcycle(x, y, w, h) {
   }
 }
 
+// ポラロイド写真描画（写真下部にランドマーク名と都道府県名を明瞭に表示）
 function drawSnapShot() {
   ctx.save();
   const posX = canvas.width - 85;
-  const posY = 130;
-  const photoW = 120;
-  const photoH = 140;
+  const posY = 135;
+  const photoW = 126;
+  const photoH = 146;
 
   ctx.globalAlpha = photoOverlay.alpha;
   ctx.translate(posX, posY);
   ctx.rotate(photoOverlay.angle);
 
+  // ポラロイド台紙
   ctx.fillStyle = "#ffffff";
-  ctx.shadowColor = "rgba(0,0,0,0.45)";
+  ctx.shadowColor = "rgba(0,0,0,0.5)";
   ctx.shadowBlur = 12;
   ctx.shadowOffsetY = 4;
   ctx.fillRect(-photoW / 2, -photoH / 2, photoW, photoH);
   ctx.shadowColor = "transparent";
 
-  const innerMargin = 8;
+  // 写真エリア（4:3比率）
+  const innerMargin = 7;
   const innerW = photoW - innerMargin * 2;
   const innerH = 88;
   const imgX = -photoW / 2 + innerMargin;
@@ -821,16 +834,22 @@ function drawSnapShot() {
     ctx.fillStyle = "#eceff1";
     ctx.font = "20px sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText("📷", 0, -photoH / 2 + 40);
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 11px sans-serif";
-    ctx.fillText(photoOverlay.landmarkName, 0, -photoH / 2 + 70);
+    ctx.fillText("📷", 0, -photoH / 2 + 50);
   }
 
-  ctx.fillStyle = "#37474f";
-  ctx.font = "italic 11px sans-serif";
+  // 枠下部エリア：ランドマーク名称（太字）
+  ctx.fillStyle = "#1a1a1a";
+  ctx.font = "bold 11px sans-serif";
   ctx.textAlign = "center";
-  ctx.fillText(`Passing by ${photoOverlay.title}`, 0, photoH / 2 - 12);
+  ctx.textBaseline = "middle";
+  // 長い名称は切り詰め
+  const displayLm = photoOverlay.landmarkName.length > 9 ? photoOverlay.landmarkName.substring(0, 8) + '…' : photoOverlay.landmarkName;
+  ctx.fillText(displayLm, 0, photoH / 2 - 25);
+
+  // 枠最下部：都道府県キャプション
+  ctx.fillStyle = "#616161";
+  ctx.font = "italic 9px sans-serif";
+  ctx.fillText(`Passing by ${photoOverlay.title}`, 0, photoH / 2 - 10);
 
   ctx.restore();
 }
