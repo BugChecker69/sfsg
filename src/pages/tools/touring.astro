@@ -750,10 +750,11 @@ function update(dt) {
     const obs = obstacles[i];
     obs.y += obs.speed * dt;
 
-    // バイク車体コアに合わせた当たり判定
+    // バイク車体コアに合わせた当たり判定（車体の30%前方シフトに追従）
+    const forwardOffset = player.height * 0.3;
     const pBox = {
       x: player.x + 10,
-      y: player.y + 10,
+      y: player.y + 10 - forwardOffset,
       w: player.width - 20,
       h: player.height - 18
     };
@@ -881,33 +882,41 @@ function render() {
 function renderMotorcycle(x, y, w, h) {
   const cx = x + w / 2;
 
-  // ヘッドライト照射光
-  const grad = ctx.createLinearGradient(cx, y + 10, cx, y - 140);
+  // 元画像の縦横比から実際の描画高さを算出
+  let drawH = h;
+  if (bikeImg && bikeImg.complete && bikeImg.naturalWidth !== 0) {
+    const naturalRatio = bikeImg.naturalHeight / bikeImg.naturalWidth;
+    drawH = w * naturalRatio;
+  }
+
+  // 車体の30%分前（画面上方）へシフト
+  const forwardOffset = drawH * 0.3;
+  const drawY = y + (h - drawH) - forwardOffset;
+
+  // ヘッドライト照射光（前方に移動した車頭位置に追従）
+  const grad = ctx.createLinearGradient(cx, drawY + 10, cx, drawY - 140);
   grad.addColorStop(0, "rgba(255, 255, 220, 0.45)");
   grad.addColorStop(1, "rgba(255, 255, 220, 0)");
   ctx.fillStyle = grad;
   ctx.beginPath();
-  ctx.moveTo(cx, y + 10);
-  ctx.lineTo(cx - 35, y - 140);
-  ctx.lineTo(cx + 35, y - 140);
+  ctx.moveTo(cx, drawY + 10);
+  ctx.lineTo(cx - 35, drawY - 140);
+  ctx.lineTo(cx + 35, drawY - 140);
   ctx.closePath();
   ctx.fill();
 
-  // 元画像の縦横比を自動維持して等倍描画
+  // バイク画像の描画
   if (bikeImg && bikeImg.complete && bikeImg.naturalWidth !== 0) {
-    const naturalRatio = bikeImg.naturalHeight / bikeImg.naturalWidth;
-    const drawH = w * naturalRatio;
-    const drawY = y + (h - drawH);
     ctx.drawImage(bikeImg, x, drawY, w, drawH);
   } else {
     ctx.fillStyle = "#1565c0";
-    ctx.fillRect(x + 4, y + 6, w - 8, h - 12);
+    ctx.fillRect(x + 4, drawY + 6, w - 8, drawH - 12);
     ctx.fillStyle = "#111";
-    ctx.fillRect(x + 9, y, w - 18, 10);
-    ctx.fillRect(x + 9, y + h - 10, w - 18, 10);
+    ctx.fillRect(x + 9, drawY, w - 18, 10);
+    ctx.fillRect(x + 9, drawY + drawH - 10, w - 18, 10);
     ctx.fillStyle = "#f5f5f5";
     ctx.beginPath();
-    ctx.arc(cx, y + 26, 7, 0, Math.PI * 2);
+    ctx.arc(cx, drawY + 26, 7, 0, Math.PI * 2);
     ctx.fill();
   }
 }
