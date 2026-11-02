@@ -334,17 +334,16 @@ function stopBGM() {
   bgmTimer = null;
 }
 
-// 1. 各ステージクリア・アイキャッチ時の爽快なジングル
 function playEyecatchJingle() {
   if (!audioCtx || !isAudioEnabled) return;
   const now = audioCtx.currentTime;
   const notes = [
-    { time: 0.00, freq: 523.25, dur: 0.12, vol: 0.09 }, // C5
-    { time: 0.11, freq: 659.25, dur: 0.12, vol: 0.09 }, // E5
-    { time: 0.22, freq: 783.99, dur: 0.12, vol: 0.10 }, // G5
-    { time: 0.33, freq: 1046.50, dur: 0.30, vol: 0.13 }, // C6
-    { time: 0.50, freq: 880.00, dur: 0.18, vol: 0.11 }, // A5
-    { time: 0.68, freq: 1046.50, dur: 0.65, vol: 0.14 }  // C6 (サステイン)
+    { time: 0.00, freq: 523.25, dur: 0.12, vol: 0.09 },
+    { time: 0.11, freq: 659.25, dur: 0.12, vol: 0.09 },
+    { time: 0.22, freq: 783.99, dur: 0.12, vol: 0.10 },
+    { time: 0.33, freq: 1046.50, dur: 0.30, vol: 0.13 },
+    { time: 0.50, freq: 880.00, dur: 0.18, vol: 0.11 },
+    { time: 0.68, freq: 1046.50, dur: 0.65, vol: 0.14 }
   ];
   notes.forEach(n => {
     playSynthTone(n.freq, "triangle", n.dur, n.vol, now + n.time);
@@ -352,7 +351,6 @@ function playEyecatchJingle() {
   });
 }
 
-// 2. フェリー乗船時の穏やかな海のメロディ（サイン波によるマリンチャイム）
 function startFerryMelody() {
   initAudio();
   stopBGM();
@@ -360,13 +358,13 @@ function startFerryMelody() {
   if (!isAudioEnabled || !audioCtx) return;
 
   const notes = [
-    { freq: 392.00, dur: 0.40 }, // G4
-    { freq: 523.25, dur: 0.40 }, // C5
-    { freq: 659.25, dur: 0.60 }, // E5
-    { freq: 587.33, dur: 0.45 }, // D5
-    { freq: 493.88, dur: 0.45 }, // B4
-    { freq: 392.00, dur: 0.45 }, // G4
-    { freq: 523.25, dur: 0.90 }  // C5
+    { freq: 392.00, dur: 0.40 },
+    { freq: 523.25, dur: 0.40 },
+    { freq: 659.25, dur: 0.60 },
+    { freq: 587.33, dur: 0.45 },
+    { freq: 493.88, dur: 0.45 },
+    { freq: 392.00, dur: 0.45 },
+    { freq: 523.25, dur: 0.90 }
   ];
   const delays = [0, 450, 950, 1600, 2100, 2600, 3100];
 
@@ -375,7 +373,7 @@ function startFerryMelody() {
       if (isAudioEnabled && audioCtx) {
         const now = audioCtx.currentTime;
         playSynthTone(n.freq, "sine", n.dur, 0.08, now);
-        playSynthTone(n.freq * 2, "sine", n.dur * 0.6, 0.02, now); // 倍音でベルの透明感
+        playSynthTone(n.freq * 2, "sine", n.dur * 0.6, 0.02, now);
       }
     }, delays[idx]);
     if (idx === 0) ferryMelodyTimer = timer;
@@ -387,7 +385,6 @@ function stopFerryMelody() {
   ferryMelodyTimer = null;
 }
 
-// 3. 47都道府県制覇時のブラス風ファンファーレ
 function playGoalFanfare() {
   if (!audioCtx || !isAudioEnabled) return;
   const now = audioCtx.currentTime;
@@ -461,11 +458,12 @@ let isGrandGoal = false;
 let transitionLockTimer = 0;
 let currentEyecatchImg = null;
 
+// プレイヤー設定（元画像のアスペクト比を維持して描画）
 const player = {
-  x: canvas.width / 2 - 18,
-  y: canvas.height - 105,
-  width: 36,
-  height: 72,
+  width: 44,
+  height: 44,
+  x: canvas.width / 2 - 22,
+  y: canvas.height - 95,
   speed: 260,
   moveLeft: false,
   moveRight: false
@@ -603,7 +601,6 @@ btnRight.addEventListener('pointerdown', (e) => {
 btnRight.addEventListener('pointerup', (e) => { e.preventDefault(); player.moveRight = false; });
 btnRight.addEventListener('pointerleave', () => player.moveRight = false);
 
-// 画面タッチ・タップ処理
 canvas.addEventListener('pointerdown', (e) => {
   e.preventDefault();
 
@@ -669,10 +666,8 @@ function update(dt) {
     updateAchievementUI();
     transitionLockTimer = 0.5;
 
-    // 走行BGM停止
     stopBGM();
 
-    // 最終ステージ（沖縄県）クリア時はグランドゴール
     if (currentStageIndex === stages.length - 1) {
       isGrandGoal = true;
       timerEl.textContent = "CONGRATULATIONS!";
@@ -680,15 +675,14 @@ function update(dt) {
       return;
     }
 
-    // フェリー航行判定
     if (stages[currentStageIndex].ferryNext) {
       isFerryScene = true;
-      startFerryMelody(); // 穏やかな海のメロディ
+      startFerryMelody();
     } else {
       isClear = true;
       const randIdx = Math.floor(Math.random() * eyecatchImages.length);
       currentEyecatchImg = eyecatchImages[randIdx];
-      playEyecatchJingle(); // 爽快なアイキャッチジングル
+      playEyecatchJingle();
     }
     return;
   }
@@ -756,11 +750,12 @@ function update(dt) {
     const obs = obstacles[i];
     obs.y += obs.speed * dt;
 
+    // バイク車体コアに合わせた当たり判定
     const pBox = {
-      x: player.x + 8,
-      y: player.y + 12,
-      w: player.width - 16,
-      h: player.height - 24
+      x: player.x + 10,
+      y: player.y + 10,
+      w: player.width - 20,
+      h: player.height - 18
     };
     const oBox = {
       x: obs.x + 6,
@@ -885,6 +880,8 @@ function render() {
 
 function renderMotorcycle(x, y, w, h) {
   const cx = x + w / 2;
+
+  // ヘッドライト照射光
   const grad = ctx.createLinearGradient(cx, y + 10, cx, y - 140);
   grad.addColorStop(0, "rgba(255, 255, 220, 0.45)");
   grad.addColorStop(1, "rgba(255, 255, 220, 0)");
@@ -896,8 +893,12 @@ function renderMotorcycle(x, y, w, h) {
   ctx.closePath();
   ctx.fill();
 
+  // 元画像の縦横比を自動維持して等倍描画
   if (bikeImg && bikeImg.complete && bikeImg.naturalWidth !== 0) {
-    ctx.drawImage(bikeImg, x, y, w, h);
+    const naturalRatio = bikeImg.naturalHeight / bikeImg.naturalWidth;
+    const drawH = w * naturalRatio;
+    const drawY = y + (h - drawH);
+    ctx.drawImage(bikeImg, x, drawY, w, drawH);
   } else {
     ctx.fillStyle = "#1565c0";
     ctx.fillRect(x + 4, y + 6, w - 8, h - 12);
