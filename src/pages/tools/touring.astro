@@ -559,7 +559,7 @@ function updateAchievementUI() {
     const badge = document.createElement('div');
     const isCleared = cleared.includes(st.id);
     badge.className = `pref-badge ${isCleared ? 'cleared' : ''} ${idx === currentStageIndex ? 'current' : ''}`;
-    badge.textContent = st.name.replace(/[都|府|県]/g, '');
+    badge.textContent = st.name.replace(/[都府県]$/, '');
     badge.title = `${st.id}. ${st.name}`;
     badge.addEventListener('click', (e) => {
       e.stopPropagation();
