@@ -282,9 +282,9 @@ const DIFF_KEY = '47touring_difficulty_level';
 // -------------------------------------------------------------
 let difficulty = parseInt(localStorage.getItem(DIFF_KEY) || '1', 10);
 const DIFF_CONFIG = {
-  1: { name: "Lv.1 NORMAL", class: "normal", angleActive: false, speedMul: 1.0 },
-  2: { name: "Lv.2 HARD", class: "hard", angleActive: true, speedMul: 1.0 },
-  3: { name: "Lv.3 EXPERT", class: "expert", angleActive: true, speedMul: 1.2 }
+  1: { name: "Lv.1 NORMAL", class: "normal", angleActive: false, speedMul: 1.0, spawnInterval: 1.1 / 1.20 },       // 120% (約0.917秒)
+  2: { name: "Lv.2 HARD",   class: "hard",   angleActive: true,  speedMul: 1.0, spawnInterval: 1.1 / (1.20 * 1.25) }, // Lv.1の125% (約0.733秒)
+  3: { name: "Lv.3 EXPERT", class: "expert", angleActive: true,  speedMul: 1.2, spawnInterval: 1.1 / (1.20 * 1.50) }  // Lv.1の150% (約0.611秒)
 };
 
 function updateDiffUI() {
@@ -863,21 +863,21 @@ function update(dt) {
     if (s.y > canvas.height + 50) roadSigns.splice(i, 1);
   }
 
+const curConf = DIFF_CONFIG[difficulty];
   spawnTimer += dt;
-  if (spawnTimer > 1.1) {
+  if (spawnTimer >= curConf.spawnInterval) {
     spawnTimer = 0;
     const laneWidth = (roadRight - roadLeft - 44);
     const spawnX = roadLeft + 6 + Math.random() * laneWidth;
     const itemObj = curStage.items[Math.floor(Math.random() * curStage.items.length)];
     const fallbackSrc = itemObj.fallback ? ASSET_PATHS.items + itemObj.fallback : null;
-    
-    // 難易度に応じたスピード倍率とアングル設定
-    const curConf = DIFF_CONFIG[difficulty];
+
+    // 難易度に応じた落下スピード（Lv.3で1.2倍）
     const baseSpeed = (210 + (30 - stageTime) * 2) * curConf.speedMul;
-    
+
+    // Lv.2, Lv.3 の 3°〜5° 斜め移動量（左右ランダム）
     let vx = 0;
     if (curConf.angleActive) {
-      // 3°〜5°のアングル (度数からラジアン換算、左右ランダム)
       const angleDeg = 3.0 + Math.random() * 2.0;
       const angleRad = (angleDeg * Math.PI) / 180;
       const dir = Math.random() < 0.5 ? -1 : 1;
