@@ -2,7 +2,7 @@
 title: "みんなが使える「画像加工ツール」を作ってみた！"
 description: "ブラウザ上で手軽に使える自作の画像加工ツールを公開しました。拡張子変更・サイズ変更・トリミング・選択箇所モザイク処理などの機能を紹介します。"
 pubDate: "Oct 31 2026"
-heroImage: "/sfsg/8th-post.jpeg"
+heroImage: "/sfsg/blog-featured-photos/featured-image-editing-app.jpeg"
 ---
 I-BO（アイボー）です。
 
