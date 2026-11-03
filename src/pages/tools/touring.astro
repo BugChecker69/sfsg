@@ -212,7 +212,8 @@ const ASSET_PATHS = {
   eyecatchStart: `${BASE_URL}/eyecatch/eyecatch_00.jpg`,
   eyecatchCrash: `${BASE_URL}/eyecatch/eyecatch_50.jpg`,
   eyecatchFerry: `${BASE_URL}/eyecatch/eyecatch_30.jpg`,
-  eyecatchGoal: `${BASE_URL}/eyecatch/eyecatch_47.jpg`
+  eyecatchGoal: `${BASE_URL}/eyecatch/eyecatch_47.jpg`,
+  themeSong: `${BASE_URL}/bgm/Winding_Road.mp3`
 };
 
 const stages = [
@@ -282,9 +283,9 @@ const DIFF_KEY = '47touring_difficulty_level';
 // -------------------------------------------------------------
 let difficulty = parseInt(localStorage.getItem(DIFF_KEY) || '1', 10);
 const DIFF_CONFIG = {
-  1: { name: "Lv.1 NORMAL", class: "normal", angleActive: false, speedMul: 1.0, spawnInterval: 1.1 / 1.20 },       // 120% (約0.917秒)
-  2: { name: "Lv.2 HARD",   class: "hard",   angleActive: true,  speedMul: 1.0, spawnInterval: 1.1 / (1.20 * 1.25) }, // Lv.1の125% (約0.733秒)
-  3: { name: "Lv.3 EXPERT", class: "expert", angleActive: true,  speedMul: 1.2, spawnInterval: 1.1 / (1.20 * 1.50) }  // Lv.1の150% (約0.611秒)
+  1: { name: "Lv.1 NORMAL", class: "normal", angleActive: false, speedMul: 1.0, spawnInterval: 1.1 / 1.20 },
+  2: { name: "Lv.2 HARD",   class: "hard",   angleActive: true,  speedMul: 1.0, spawnInterval: 1.1 / (1.20 * 1.25) },
+  3: { name: "Lv.3 EXPERT", class: "expert", angleActive: true,  speedMul: 1.2, spawnInterval: 1.1 / (1.20 * 1.50) }
 };
 
 function updateDiffUI() {
@@ -300,6 +301,36 @@ diffBtn.addEventListener('click', (e) => {
   updateDiffUI();
 });
 updateDiffUI();
+
+// -------------------------------------------------------------
+// イメージ曲 (Winding_Road.mp3) 管理
+// -------------------------------------------------------------
+const themeSongAudio = new Audio(ASSET_PATHS.themeSong);
+let isThemeSongPlaying = false;
+
+themeSongAudio.addEventListener('ended', () => {
+  stopThemeSong();
+});
+
+function playThemeSong() {
+  stopBGM();
+  stopMorningBGM();
+  stopFerryMelody();
+  isThemeSongPlaying = true;
+  themeSongAudio.currentTime = 0;
+  if (isAudioEnabled) {
+    themeSongAudio.play().catch(() => {});
+  }
+}
+
+function stopThemeSong() {
+  isThemeSongPlaying = false;
+  themeSongAudio.pause();
+  themeSongAudio.currentTime = 0;
+  if (isTitleScreen && isAudioEnabled) {
+    startMorningBGM();
+  }
+}
 
 // -------------------------------------------------------------
 // Web Audio API：走行BGM・朝の静けさ・ジングル・フェリー音・ファンファーレ
@@ -384,7 +415,7 @@ function stopBGM() {
 }
 
 function scheduleMorningBGM() {
-  if (!isAudioEnabled || !audioCtx) return;
+  if (!isAudioEnabled || !audioCtx || isThemeSongPlaying) return;
   const now = audioCtx.currentTime;
   const stepTime = 0.26;
   const noteFreq = MORNING_NOTES[morningStep % MORNING_NOTES.length];
@@ -397,6 +428,7 @@ function scheduleMorningBGM() {
 }
 
 function startMorningBGM() {
+  if (isThemeSongPlaying) return;
   initAudio();
   stopBGM();
   stopFerryMelody();
@@ -487,7 +519,9 @@ soundBtn.addEventListener('click', (e) => {
   if (isAudioEnabled) {
     soundBtn.textContent = "🔊 BGM: ON";
     soundBtn.style.color = "#fff";
-    if (isTitleScreen) {
+    if (isThemeSongPlaying) {
+      themeSongAudio.play().catch(() => {});
+    } else if (isTitleScreen) {
       startMorningBGM();
     } else if (isFerryScene) {
       startFerryMelody();
@@ -497,6 +531,7 @@ soundBtn.addEventListener('click', (e) => {
   } else {
     soundBtn.textContent = "🔇 BGM: OFF";
     soundBtn.style.color = "#888";
+    themeSongAudio.pause();
     stopBGM();
     stopMorningBGM();
     stopFerryMelody();
@@ -596,6 +631,7 @@ function updateAchievementUI() {
     badge.addEventListener('click', (e) => {
       e.stopPropagation();
       isTitleScreen = false;
+      stopThemeSong();
       stopMorningBGM();
       resetStage(idx);
     });
@@ -658,14 +694,13 @@ function resetStage(stageIndex) {
 window.addEventListener('keydown', (e) => {
   if (isTitleScreen) {
     initAudio();
-    if (!titleAudioStarted) {
-      titleAudioStarted = true;
-      startMorningBGM();
-    } else {
-      stopMorningBGM();
-      isTitleScreen = false;
-      resetStage(0);
+    if (isThemeSongPlaying) {
+      stopThemeSong();
+      return;
     }
+    stopMorningBGM();
+    isTitleScreen = false;
+    resetStage(0);
     return;
   }
   if (isAudioEnabled && !bgmTimer && !isClear && !isFerryScene && !isGameOver && !isGrandGoal) {
@@ -685,14 +720,13 @@ btnLeft.addEventListener('pointerdown', (e) => {
   e.preventDefault();
   if (isTitleScreen) {
     initAudio();
-    if (!titleAudioStarted) {
-      titleAudioStarted = true;
-      startMorningBGM();
-    } else {
-      stopMorningBGM();
-      isTitleScreen = false;
-      resetStage(0);
+    if (isThemeSongPlaying) {
+      stopThemeSong();
+      return;
     }
+    stopMorningBGM();
+    isTitleScreen = false;
+    resetStage(0);
     return;
   }
   if (isAudioEnabled && !bgmTimer && !isClear && !isFerryScene && !isGameOver && !isGrandGoal) startBGM();
@@ -705,14 +739,13 @@ btnRight.addEventListener('pointerdown', (e) => {
   e.preventDefault();
   if (isTitleScreen) {
     initAudio();
-    if (!titleAudioStarted) {
-      titleAudioStarted = true;
-      startMorningBGM();
-    } else {
-      stopMorningBGM();
-      isTitleScreen = false;
-      resetStage(0);
+    if (isThemeSongPlaying) {
+      stopThemeSong();
+      return;
     }
+    stopMorningBGM();
+    isTitleScreen = false;
+    resetStage(0);
     return;
   }
   if (isAudioEnabled && !bgmTimer && !isClear && !isFerryScene && !isGameOver && !isGrandGoal) startBGM();
@@ -721,23 +754,63 @@ btnRight.addEventListener('pointerdown', (e) => {
 btnRight.addEventListener('pointerup', (e) => { e.preventDefault(); player.moveRight = false; });
 btnRight.addEventListener('pointerleave', () => player.moveRight = false);
 
+// 画面タッチ・タップ処理（タイトル画面ボタン判定含む）
 canvas.addEventListener('pointerdown', (e) => {
   e.preventDefault();
 
+  const rect = canvas.getBoundingClientRect();
+  const touchX = e.clientX - rect.left;
+  const touchY = e.clientY - rect.top;
+
+  // タイトル画面の処理
   if (isTitleScreen) {
     initAudio();
+
+    // イメージ曲再生中の場合はタップでメニューに戻る
+    if (isThemeSongPlaying) {
+      stopThemeSong();
+      return;
+    }
+
+    // 初回タップ時（朝BGM未鳴動時）は音声を解禁してBGMスタート
     if (!titleAudioStarted) {
       titleAudioStarted = true;
       startMorningBGM();
+    }
+
+    // ボタン判定領域
+    const btnW = 260;
+    const btnH = 38;
+    const btnX = (canvas.width - btnW) / 2;
+    const bannerY = canvas.height - 230;
+    const startBtnY = bannerY + 105;
+    const musicBtnY = bannerY + 155;
+
+    // 「イメージ曲を再生する」ボタンタップ
+    if (
+      touchX >= btnX && touchX <= btnX + btnW &&
+      touchY >= musicBtnY && touchY <= musicBtnY + btnH
+    ) {
+      playThemeSong();
       return;
-    } else {
+    }
+
+    // 「ゲームスタート」ボタンタップ（またはその他の画面タップ）
+    if (
+      (touchX >= btnX && touchX <= btnX + btnW &&
+       touchY >= startBtnY && touchY <= startBtnY + btnH) ||
+      touchY < bannerY
+    ) {
+      stopThemeSong();
       stopMorningBGM();
       isTitleScreen = false;
       resetStage(0);
       return;
     }
+    return;
   }
 
+  // 静止・リザルト画面での遷移処理
   if (isGameOver || isClear || isFerryScene || isGrandGoal) {
     if (transitionLockTimer > 0) return;
 
@@ -757,8 +830,6 @@ canvas.addEventListener('pointerdown', (e) => {
 
   if (isAudioEnabled && !bgmTimer) startBGM();
 
-  const rect = canvas.getBoundingClientRect();
-  const touchX = e.clientX - rect.left;
   if (touchX < rect.width / 2) {
     player.moveLeft = true;
     player.moveRight = false;
@@ -863,7 +934,7 @@ function update(dt) {
     if (s.y > canvas.height + 50) roadSigns.splice(i, 1);
   }
 
-const curConf = DIFF_CONFIG[difficulty];
+  const curConf = DIFF_CONFIG[difficulty];
   spawnTimer += dt;
   if (spawnTimer >= curConf.spawnInterval) {
     spawnTimer = 0;
@@ -872,10 +943,8 @@ const curConf = DIFF_CONFIG[difficulty];
     const itemObj = curStage.items[Math.floor(Math.random() * curStage.items.length)];
     const fallbackSrc = itemObj.fallback ? ASSET_PATHS.items + itemObj.fallback : null;
 
-    // 難易度に応じた落下スピード（Lv.3で1.2倍）
     const baseSpeed = (210 + (30 - stageTime) * 2) * curConf.speedMul;
 
-    // Lv.2, Lv.3 の 3°〜5° 斜め移動量（左右ランダム）
     let vx = 0;
     if (curConf.angleActive) {
       const angleDeg = 3.0 + Math.random() * 2.0;
@@ -902,14 +971,13 @@ const curConf = DIFF_CONFIG[difficulty];
     obs.y += obs.speedY * dt;
     obs.x += obs.speedX * dt;
 
-    // 難易度Lv2/Lv3：道路端（路肩の白線）での跳ね返り挙動
     if (obs.speedX !== 0) {
       if (obs.x <= roadLeft) {
         obs.x = roadLeft;
-        obs.speedX = Math.abs(obs.speedX); // 右へ反転
+        obs.speedX = Math.abs(obs.speedX);
       } else if (obs.x + obs.width >= roadRight) {
         obs.x = roadRight - obs.width;
-        obs.speedX = -Math.abs(obs.speedX); // 左へ反転
+        obs.speedX = -Math.abs(obs.speedX);
       }
     }
 
@@ -1141,40 +1209,84 @@ function drawCoverImage(img) {
   return false;
 }
 
-// 朝焼けのスタート待機画面（eyecatch_00.jpg）
+// 朝焼けのスタート待機画面（eyecatch_00.jpg ＋ 2つの選択ボタン）
 function renderTitleScreen() {
   if (!drawCoverImage(eyecatchStartImg)) {
     ctx.fillStyle = "#2c3e50";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   }
 
-  const bannerH = 190;
+  const bannerH = 230;
   const bannerY = canvas.height - bannerH;
   const grad = ctx.createLinearGradient(0, bannerY - 30, 0, bannerY + 20);
   grad.addColorStop(0, "rgba(0, 0, 0, 0)");
-  grad.addColorStop(1, "rgba(0, 0, 0, 0.88)");
+  grad.addColorStop(1, "rgba(0, 0, 0, 0.92)");
   ctx.fillStyle = grad;
   ctx.fillRect(0, bannerY - 30, canvas.width, 50);
 
-  ctx.fillStyle = "rgba(0, 0, 0, 0.88)";
+  ctx.fillStyle = "rgba(0, 0, 0, 0.92)";
   ctx.fillRect(0, bannerY + 20, canvas.width, bannerH - 20);
 
   ctx.fillStyle = "#ffca28";
   ctx.font = "bold 23px sans-serif";
   ctx.textAlign = "center";
-  ctx.fillText("47都道府県ツーリング", canvas.width / 2, bannerY + 45);
+  ctx.fillText("47都道府県ツーリング", canvas.width / 2, bannerY + 42);
 
   ctx.fillStyle = "#ffffff";
-  ctx.font = "14px sans-serif";
-  ctx.fillText("東京出発 ➔ 日本全国一筆書きの旅", canvas.width / 2, bannerY + 80);
+  ctx.font = "13px sans-serif";
+  ctx.fillText("東京出発 ➔ 日本全国一筆書きの旅", canvas.width / 2, bannerY + 72);
 
-  ctx.fillStyle = "#81c784";
-  ctx.font = "bold 16px sans-serif";
-  if (!titleAudioStarted) {
-    ctx.fillText("画面タップでBGM開始", canvas.width / 2, bannerY + 125);
-  } else {
-    ctx.fillText("もう一度タップで出走！", canvas.width / 2, bannerY + 125);
+  // イメージ曲再生中モード
+  if (isThemeSongPlaying) {
+    ctx.fillStyle = "rgba(33, 150, 243, 0.25)";
+    ctx.beginPath();
+    ctx.roundRect(40, bannerY + 110, 280, 75, 8);
+    ctx.fill();
+    ctx.strokeStyle = "#4fc3f7";
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    ctx.fillStyle = "#4fc3f7";
+    ctx.font = "bold 15px sans-serif";
+    ctx.fillText("🎵 Winding Road 再生中...", canvas.width / 2, bannerY + 140);
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "12px sans-serif";
+    ctx.fillText("画面タップでメニューに戻る", canvas.width / 2, bannerY + 168);
+    return;
   }
+
+  // 通常メニュー：ボタン描画
+  const btnW = 260;
+  const btnH = 38;
+  const btnX = (canvas.width - btnW) / 2;
+
+  // 1. ゲームスタートボタン
+  const startBtnY = bannerY + 105;
+  ctx.fillStyle = "#2e7d32";
+  ctx.beginPath();
+  ctx.roundRect(btnX, startBtnY, btnW, btnH, 6);
+  ctx.fill();
+  ctx.strokeStyle = "#81c784";
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "bold 15px sans-serif";
+  ctx.fillText("🏍️ ゲームスタート", canvas.width / 2, startBtnY + 24);
+
+  // 2. イメージ曲再生ボタン
+  const musicBtnY = bannerY + 155;
+  ctx.fillStyle = "#1565c0";
+  ctx.beginPath();
+  ctx.roundRect(btnX, musicBtnY, btnW, btnH, 6);
+  ctx.fill();
+  ctx.strokeStyle = "#64b5f6";
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "bold 14px sans-serif";
+  ctx.fillText("🎵 イメージ曲を再生する", canvas.width / 2, musicBtnY + 24);
 }
 
 // 転倒クラッシュ画面（eyecatch_50.jpg）
