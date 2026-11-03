@@ -2,7 +2,7 @@
 title: '【完全無料・GAS製】GoogleドライブとCSVだけで動くWeb単語帳アプリを作ってみた'
 description: 'Google Apps ScriptとGoogleドライブを活用し、完全サーバーレスで動く軽量Web単語帳アプリを作成しました。'
 pubDate: '2026-10-22'
-heroImage: '/sfsg/word-card-pc.jpeg'
+heroImage: '/sfsg/blog-featured-photos/featured-word-card-pc.jpeg'
 ---
 
 I-BO（アイボー）です。
