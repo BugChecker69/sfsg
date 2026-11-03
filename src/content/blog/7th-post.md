@@ -2,7 +2,7 @@
 title: "新世紀エヴァンゲリオンの「MAGI SYSTEM」を最新AIを使って作ってみた"
 description: "新世紀エヴァンゲリオンに登場するスーパーコンピュータ「MAGI」の合議決定プロセスを、3つの異なるフロンティアLLMを用いて再現・構築してみました。"
 pubDate: "Oct 29 2026"
-heroImage: "/sfsg/7th-post.jpeg"
+heroImage: "/sfsg/blog-featured-photos/featured-magi-system.jpeg"
 ---
 
 I-BO（アイボー）です。
@@ -16,7 +16,7 @@ I-BO（アイボー）です。
 本システムは、エヴァンゲリオンの「MAGI」の合議決定プロセスを模したマルチエージェント意思決定エンジンです。
 3つの異なるAIモデルを並列稼働させ、多角的な視点から議論・判定を行います。
 
-![MAGI SYSTEM システム利用画面](/sfsg/MAGI%20SYSTEM.webp)
+![MAGI SYSTEM システム利用画面](/sfsg/blog-featured-photos/in-article-MAGI-SYSTEM.webp)
 
 ## 2. システム構成・技術仕様
 
