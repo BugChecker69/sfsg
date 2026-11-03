@@ -9,6 +9,7 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 <html lang="ja">
 	<head>
 			<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+			<meta property="og:site_name" content="SFSG" />
 			<script type="application/ld+json" set:html={JSON.stringify({
 				"@context": "https://schema.org",
 				"@type": "WebSite",
