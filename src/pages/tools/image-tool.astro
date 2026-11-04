@@ -18,7 +18,7 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../../consts';
 			<h1 class="page-title">画像加工ツール</h1>
 			<p class="page-desc">
 				拡張子変更・サイズ変更・トリミング・選択箇所モザイク処理（長辺2048px超は自動縮小保護）<br>
-				<span style="font-size: 0.75rem; color: #64748b;">ブラウザの種類・バージョンによっては正常に使用できない場合があります（iPhoneがうまくいかない👾）</span>
+				<span style="font-size: 0.75rem; color: #64748b;">ブラウザの種類・バージョンによっては正常に使用できない場合があります</span>
 			</p>
 
 			<div class="card" id="uploadCard">
@@ -721,7 +721,7 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../../consts';
 				uploadCard.classList.remove('hidden');
 			});
 
-			downloadBtn.addEventListener('click', () => {
+downloadBtn.addEventListener('click', () => {
 				const format = exportFormatSelect.value;
 				let ext = 'jpg';
 				if (format === 'image/png') ext = 'png';
@@ -739,11 +739,32 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../../consts';
 
 				exportCtx.drawImage(workCanvas, 0, 0, currentWidth, currentHeight);
 
-				exportCanvas.toBlob((blob) => {
+				exportCanvas.toBlob(async (blob) => {
+					if (!blob) return;
+
+					const fileName = `${originalFileName}_edited.${ext}`;
+					const file = new File([blob], fileName, { type: format });
+
+					// 1. iOS / スマートフォン向け: Web Share APIで共有シートを開く
+					if (navigator.canShare && navigator.canShare({ files: [file] })) {
+						try {
+							await navigator.share({
+								files: [file],
+								title: '加工済み画像',
+							});
+							return;
+						} catch (err) {
+							if (err.name !== 'AbortError') {
+								console.error(err);
+							}
+						}
+					}
+
+					// 2. PC / 一般ブラウザ向け: 従来の自動ダウンロード
 					const url = URL.createObjectURL(blob);
 					const a = document.createElement('a');
 					a.href = url;
-					a.download = `${originalFileName}_edited.${ext}`;
+					a.download = fileName;
 					document.body.appendChild(a);
 					a.click();
 					document.body.removeChild(a);
