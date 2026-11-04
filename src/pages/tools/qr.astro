@@ -68,7 +68,7 @@
   }
   textarea {
     width: 100%;
-    height: 80px;
+    height: 75px;
     background: #1e1e1e;
     border: 1px solid #555;
     border-radius: 6px;
@@ -83,8 +83,8 @@
   }
   .options {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
     margin: 14px 0;
   }
   select {
@@ -93,8 +93,8 @@
     border: 1px solid #555;
     border-radius: 6px;
     color: #fff;
-    padding: 8px;
-    font-size: 13px;
+    padding: 8px 4px;
+    font-size: 12px;
     outline: none;
   }
   .icon-section {
@@ -222,20 +222,28 @@
 
     <div class="options">
       <div>
-        <label for="qr-size">サイズ</label>
-        <select id="qr-size">
-          <option value="200">小 (200 x 200)</option>
-          <option value="280" selected>中 (280 x 280)</option>
-          <option value="380">大 (380 x 380)</option>
+        <label for="qr-style">デザイン形状</label>
+        <select id="qr-style">
+          <option value="square" selected>標準 (角型)</option>
+          <option value="dots">ドット (丸型)</option>
+          <option value="rounded">角丸 (ソフト)</option>
         </select>
       </div>
       <div>
-        <label for="qr-level">誤り訂正レベル</label>
+        <label for="qr-size">サイズ</label>
+        <select id="qr-size">
+          <option value="220">小 (220px)</option>
+          <option value="300" selected>中 (300px)</option>
+          <option value="400">大 (400px)</option>
+        </select>
+      </div>
+      <div>
+        <label for="qr-level">誤り訂正</label>
         <select id="qr-level">
-          <option value="L">L (7% 復元可能)</option>
-          <option value="M">M (15% 復元可能)</option>
-          <option value="Q">Q (25% 復元可能)</option>
-          <option value="H" selected>H (30% 復元可能・推奨)</option>
+          <option value="L">L (7%)</option>
+          <option value="M">M (15%)</option>
+          <option value="Q">Q (25%)</option>
+          <option value="H" selected>H (30%推奨)</option>
         </select>
       </div>
     </div>
@@ -272,7 +280,6 @@
 </div>
 
 <script type="module">
-  // ブラウザ環境で確実に動作するQRCode ESMバンドルを直接インポート
   import QRCode from 'https://esm.sh/qrcode@1.5.3';
 
   const SVG_ICONS = {
@@ -286,6 +293,7 @@
   };
 
   const textInput = document.getElementById('qr-text');
+  const styleSelect = document.getElementById('qr-style');
   const sizeSelect = document.getElementById('qr-size');
   const levelSelect = document.getElementById('qr-level');
   const generateBtn = document.getElementById('btn-generate');
@@ -351,6 +359,14 @@
     });
   }
 
+  // 四隅の位置検出パターン（切り出しシンボル）の領域か判定する関数
+  function isFinderPattern(r, c, moduleCount) {
+    if (r < 7 && c < 7) return true; // 左上
+    if (r < 7 && c >= moduleCount - 7) return true; // 右上
+    if (r >= moduleCount - 7 && c < 7) return true; // 左下
+    return false;
+  }
+
   async function makeQR() {
     const text = textInput.value.trim();
     if (!text) {
@@ -360,30 +376,66 @@
       return;
     }
 
-    const size = parseInt(sizeSelect.value, 10);
+    const targetSize = parseInt(sizeSelect.value, 10);
     const errorCorrectionLevel = levelSelect.value;
+    const style = styleSelect.value;
 
     try {
-      // 1. QRCodeライブラリでCanvasに直接描画
-      await QRCode.toCanvas(resultCanvas, text, {
-        width: size,
-        margin: 2,
-        errorCorrectionLevel: errorCorrectionLevel,
-        color: {
-          dark: '#000000',
-          light: '#ffffff'
-        }
+      // QRコードの生マトリクスデータを生成
+      const qrData = QRCode.create(text, {
+        errorCorrectionLevel: errorCorrectionLevel
       });
 
-      // 2. アイコンの合成処理
+      const moduleCount = qrData.modules.size;
+      const marginModules = 2;
+      const totalModules = moduleCount + marginModules * 2;
+      const moduleSize = Math.floor(targetSize / totalModules);
+      const canvasSize = moduleSize * totalModules;
+
+      resultCanvas.width = canvasSize;
+      resultCanvas.height = canvasSize;
+      const ctx = resultCanvas.getContext('2d');
+
+      // 背景（白）
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvasSize, canvasSize);
+
+      ctx.fillStyle = '#000000';
+
+      // 各モジュール（ドット）の描画
+      for (let r = 0; r < moduleCount; r++) {
+        for (let c = 0; c < moduleCount; c++) {
+          const isDark = qrData.modules.get(r, c);
+          if (!isDark) continue;
+
+          const x = (c + marginModules) * moduleSize;
+          const y = (r + marginModules) * moduleSize;
+
+          // 四隅のファインダーパターンは認識精度保持のため四角形で描画
+          if (isFinderPattern(r, c, moduleCount) || style === 'square') {
+            ctx.fillRect(x, y, moduleSize, moduleSize);
+          } else if (style === 'dots') {
+            // 丸型ドット
+            ctx.beginPath();
+            ctx.arc(x + moduleSize / 2, y + moduleSize / 2, moduleSize * 0.42, 0, Math.PI * 2);
+            ctx.fill();
+          } else if (style === 'rounded') {
+            // 角丸スクエア
+            ctx.beginPath();
+            ctx.roundRect(x + moduleSize * 0.06, y + moduleSize * 0.06, moduleSize * 0.88, moduleSize * 0.88, moduleSize * 0.32);
+            ctx.fill();
+          }
+        }
+      }
+
+      // アイコンの合成処理
       const iconImg = await getIconImage();
       if (iconImg) {
-        const ctx = resultCanvas.getContext('2d');
-        const iconSize = Math.floor(size * 0.22);
-        const iconX = (size - iconSize) / 2;
-        const iconY = (size - iconSize) / 2;
+        const iconSize = Math.floor(canvasSize * 0.22);
+        const iconX = (canvasSize - iconSize) / 2;
+        const iconY = (canvasSize - iconSize) / 2;
 
-        // 白い背景マージンを描画
+        // 白い背景マージン（QRのドットとの境界）
         const pad = Math.floor(iconSize * 0.14);
         ctx.fillStyle = '#ffffff';
         ctx.beginPath();
@@ -419,7 +471,7 @@
     const url = resultCanvas.toDataURL('image/png');
     const a = document.createElement('a');
     a.href = url;
-    a.download = `qrcode_${currentIconType}_${Date.now()}.png`;
+    a.download = `qrcode_${styleSelect.value}_${currentIconType}_${Date.now()}.png`;
     a.click();
   });
 </script>
