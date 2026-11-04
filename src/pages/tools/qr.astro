@@ -83,8 +83,8 @@
   }
   .options {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 8px;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
     margin: 14px 0;
   }
   select {
@@ -93,9 +93,34 @@
     border: 1px solid #555;
     border-radius: 6px;
     color: #fff;
-    padding: 8px 4px;
+    padding: 8px 6px;
     font-size: 12px;
     outline: none;
+  }
+  .color-section {
+    margin: 14px 0;
+  }
+  .color-palette {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .color-swatch {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: 0.15s;
+    outline: none;
+  }
+  .color-swatch:hover {
+    transform: scale(1.1);
+  }
+  .color-swatch.active {
+    border-color: #fff;
+    box-shadow: 0 0 0 2px #1976d2;
   }
   .icon-section {
     margin: 16px 0;
@@ -222,11 +247,19 @@
 
     <div class="options">
       <div>
-        <label for="qr-style">デザイン形状</label>
+        <label for="qr-style">ドット形状</label>
         <select id="qr-style">
           <option value="square" selected>標準 (角型)</option>
           <option value="dots">ドット (丸型)</option>
           <option value="rounded">角丸 (ソフト)</option>
+        </select>
+      </div>
+      <div>
+        <label for="finder-style">切り出しシンボル</label>
+        <select id="finder-style">
+          <option value="square" selected>標準 (角型)</option>
+          <option value="rounded">角丸 (ソフト)</option>
+          <option value="circle">円形 (サークル)</option>
         </select>
       </div>
       <div>
@@ -245,6 +278,18 @@
           <option value="Q">Q (25%)</option>
           <option value="H" selected>H (30%推奨)</option>
         </select>
+      </div>
+    </div>
+
+    <div class="color-section">
+      <label>コード色</label>
+      <div class="color-palette" id="color-palette">
+        <button type="button" class="color-swatch active" data-color="#000000" style="background-color: #000000;" title="ブラック"></button>
+        <button type="button" class="color-swatch" data-color="#1a365d" style="background-color: #1a365d;" title="ディープネイビー"></button>
+        <button type="button" class="color-swatch" data-color="#1b4332" style="background-color: #1b4332;" title="フォレストグリーン"></button>
+        <button type="button" class="color-swatch" data-color="#6b1426" style="background-color: #6b1426;" title="ワインレッド"></button>
+        <button type="button" class="color-swatch" data-color="#4a154b" style="background-color: #4a154b;" title="ディープパープル"></button>
+        <button type="button" class="color-swatch" data-color="#333333" style="background-color: #333333;" title="チャコール"></button>
       </div>
     </div>
 
@@ -294,6 +339,7 @@
 
   const textInput = document.getElementById('qr-text');
   const styleSelect = document.getElementById('qr-style');
+  const finderSelect = document.getElementById('finder-style');
   const sizeSelect = document.getElementById('qr-size');
   const levelSelect = document.getElementById('qr-level');
   const generateBtn = document.getElementById('btn-generate');
@@ -303,10 +349,22 @@
   const presetButtons = document.querySelectorAll('.preset-btn');
   const customFileInput = document.getElementById('custom-file');
   const fileLabel = document.getElementById('file-label');
+  const colorSwatches = document.querySelectorAll('.color-swatch');
 
   let currentIconType = 'none';
   let customImageSrc = null;
+  let currentColor = '#000000';
 
+  // カラー選択
+  colorSwatches.forEach(swatch => {
+    swatch.addEventListener('click', () => {
+      colorSwatches.forEach(s => s.classList.remove('active'));
+      swatch.classList.add('active');
+      currentColor = swatch.dataset.color;
+    });
+  });
+
+  // プリセットアイコン選択
   presetButtons.forEach(btn => {
     btn.addEventListener('click', () => {
       presetButtons.forEach(b => b.classList.remove('active'));
@@ -322,6 +380,7 @@
     });
   });
 
+  // カスタム画像アップロード
   customFileInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -359,12 +418,60 @@
     });
   }
 
-  // 四隅の位置検出パターン（切り出しシンボル）の領域か判定する関数
-  function isFinderPattern(r, c, moduleCount) {
-    if (r < 7 && c < 7) return true; // 左上
-    if (r < 7 && c >= moduleCount - 7) return true; // 右上
-    if (r >= moduleCount - 7 && c < 7) return true; // 左下
+  // 四隅のファインダーパターン（7x7モジュール）領域内か判定
+  function isFinderArea(r, c, moduleCount) {
+    if (r < 7 && c < 7) return true;
+    if (r < 7 && c >= moduleCount - 7) return true;
+    if (r >= moduleCount - 7 && c < 7) return true;
     return false;
+  }
+
+  // 切り出しシンボル（ファインダーパターン）を独自描画
+  function drawFinderPattern(ctx, x, y, size, style, color) {
+    const mod = size / 7;
+    ctx.fillStyle = color;
+
+    if (style === 'square') {
+      // 標準：外枠 7x7、内側抜き 5x5、中心核 3x3
+      ctx.fillRect(x, y, size, size);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(x + mod, y + mod, size - mod * 2, size - mod * 2);
+      ctx.fillStyle = color;
+      ctx.fillRect(x + mod * 2, y + mod * 2, size - mod * 4, size - mod * 4);
+    } else if (style === 'rounded') {
+      // 角丸：外枠・内側・中心核を適度にラウンド
+      ctx.beginPath();
+      ctx.roundRect(x, y, size, size, mod * 1.8);
+      ctx.fill();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.roundRect(x + mod, y + mod, size - mod * 2, size - mod * 2, mod * 1.2);
+      ctx.fill();
+
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.roundRect(x + mod * 2, y + mod * 2, size - mod * 4, size - mod * 4, mod * 0.8);
+      ctx.fill();
+    } else if (style === 'circle') {
+      // 円形：完全な同心円構造
+      const cx = x + size / 2;
+      const cy = y + size / 2;
+
+      ctx.beginPath();
+      ctx.arc(cx, cy, size / 2, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(cx, cy, (size / 2) - mod, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(cx, cy, (size / 2) - mod * 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
   }
 
   async function makeQR() {
@@ -378,10 +485,10 @@
 
     const targetSize = parseInt(sizeSelect.value, 10);
     const errorCorrectionLevel = levelSelect.value;
-    const style = styleSelect.value;
+    const dotStyle = styleSelect.value;
+    const finderStyle = finderSelect.value;
 
     try {
-      // QRコードの生マトリクスデータを生成
       const qrData = QRCode.create(text, {
         errorCorrectionLevel: errorCorrectionLevel
       });
@@ -400,27 +507,26 @@
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(0, 0, canvasSize, canvasSize);
 
-      ctx.fillStyle = '#000000';
+      ctx.fillStyle = currentColor;
 
-      // 各モジュール（ドット）の描画
+      // 1. 一般データモジュール（ドット部）の描画（ファインダーパターン領域はスキップ）
       for (let r = 0; r < moduleCount; r++) {
         for (let c = 0; c < moduleCount; c++) {
+          if (isFinderArea(r, c, moduleCount)) continue;
+
           const isDark = qrData.modules.get(r, c);
           if (!isDark) continue;
 
           const x = (c + marginModules) * moduleSize;
           const y = (r + marginModules) * moduleSize;
 
-          // 四隅のファインダーパターンは認識精度保持のため四角形で描画
-          if (isFinderPattern(r, c, moduleCount) || style === 'square') {
+          if (dotStyle === 'square') {
             ctx.fillRect(x, y, moduleSize, moduleSize);
-          } else if (style === 'dots') {
-            // 丸型ドット
+          } else if (dotStyle === 'dots') {
             ctx.beginPath();
             ctx.arc(x + moduleSize / 2, y + moduleSize / 2, moduleSize * 0.42, 0, Math.PI * 2);
             ctx.fill();
-          } else if (style === 'rounded') {
-            // 角丸スクエア
+          } else if (dotStyle === 'rounded') {
             ctx.beginPath();
             ctx.roundRect(x + moduleSize * 0.06, y + moduleSize * 0.06, moduleSize * 0.88, moduleSize * 0.88, moduleSize * 0.32);
             ctx.fill();
@@ -428,21 +534,33 @@
         }
       }
 
-      // アイコンの合成処理
+      // 2. 切り出しシンボル（3箇所）の描画
+      const finderSize = 7 * moduleSize;
+      const positions = [
+        { x: marginModules * moduleSize, y: marginModules * moduleSize }, // 左上
+        { x: (marginModules + moduleCount - 7) * moduleSize, y: marginModules * moduleSize }, // 右上
+        { x: marginModules * moduleSize, y: (marginModules + moduleCount - 7) * moduleSize } // 左下
+      ];
+
+      positions.forEach(pos => {
+        drawFinderPattern(ctx, pos.x, pos.y, finderSize, finderStyle, currentColor);
+      });
+
+      // 3. アイコンの合成処理
       const iconImg = await getIconImage();
       if (iconImg) {
         const iconSize = Math.floor(canvasSize * 0.22);
         const iconX = (canvasSize - iconSize) / 2;
         const iconY = (canvasSize - iconSize) / 2;
 
-        // 白い背景マージン（QRのドットとの境界）
+        // 白枠マージン
         const pad = Math.floor(iconSize * 0.14);
         ctx.fillStyle = '#ffffff';
         ctx.beginPath();
         ctx.roundRect(iconX - pad, iconY - pad, iconSize + pad * 2, iconSize + pad * 2, (iconSize + pad * 2) * 0.22);
         ctx.fill();
 
-        // アイコン描画
+        // アイコン本体描画
         ctx.save();
         ctx.beginPath();
         ctx.roundRect(iconX, iconY, iconSize, iconSize, iconSize * 0.2);
@@ -471,7 +589,7 @@
     const url = resultCanvas.toDataURL('image/png');
     const a = document.createElement('a');
     a.href = url;
-    a.download = `qrcode_${styleSelect.value}_${currentIconType}_${Date.now()}.png`;
+    a.download = `qrcode_${styleSelect.value}_${finderSelect.value}_${Date.now()}.png`;
     a.click();
   });
 </script>
