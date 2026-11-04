@@ -450,3 +450,10 @@
     const url = resultCanvas.toDataURL('image/png');
     const a = document.createElement('a');
     a.href = url;
+    a.download = `qrcode_${currentIconType}_${Date.now()}.png`;
+    a.click();
+  });
+</script>
+
+</body>
+</html>
