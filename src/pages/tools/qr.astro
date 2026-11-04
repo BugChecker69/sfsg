@@ -585,12 +585,39 @@
     }
   });
 
-  downloadBtn.addEventListener('click', () => {
-    const url = resultCanvas.toDataURL('image/png');
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `qrcode_${styleSelect.value}_${finderSelect.value}_${Date.now()}.png`;
-    a.click();
+downloadBtn.addEventListener('click', async () => {
+    // CanvasからBlob（バイナリデータ）を作成
+    resultCanvas.toBlob(async (blob) => {
+      if (!blob) return;
+
+      const fileName = `qrcode_${styleSelect.value}_${finderSelect.value}_${Date.now()}.png`;
+      const file = new File([blob], fileName, { type: 'image/png' });
+
+      // 1. iOS / スマートフォン向け: Web Share APIで「画像を保存」メニューを表示
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({
+            files: [file],
+            title: 'QRコード',
+          });
+          return;
+        } catch (err) {
+          if (err.name !== 'AbortError') {
+            console.error(err);
+          }
+        }
+      }
+
+      // 2. PC / 一般ブラウザ向け: 通常のダウンロード処理
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 'image/png');
   });
 </script>
 
