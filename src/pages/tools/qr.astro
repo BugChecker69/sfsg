@@ -585,30 +585,33 @@
     }
   });
 
-downloadBtn.addEventListener('click', async () => {
-    // CanvasからBlob（バイナリデータ）を作成
+downloadBtn.addEventListener('click', () => {
     resultCanvas.toBlob(async (blob) => {
       if (!blob) return;
 
       const fileName = `qrcode_${styleSelect.value}_${finderSelect.value}_${Date.now()}.png`;
-      const file = new File([blob], fileName, { type: 'image/png' });
 
-      // 1. iOS / スマートフォン向け: Web Share APIで「画像を保存」メニューを表示
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        try {
-          await navigator.share({
-            files: [file],
-            title: 'QRコード',
-          });
-          return;
-        } catch (err) {
-          if (err.name !== 'AbortError') {
-            console.error(err);
+      // モバイル端末（iOS / Android）判定
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+      // モバイル環境かつWeb Share API対応時のみ共有メニューを開く
+      if (isMobile && navigator.canShare) {
+        const file = new File([blob], fileName, { type: 'image/png' });
+        if (navigator.canShare({ files: [file] })) {
+          try {
+            await navigator.share({
+              files: [file],
+              title: 'QRコード',
+            });
+            return; // 共有メニューを開いた場合はここで終了
+          } catch (err) {
+            // キャンセルされた場合は何もしない
+            return;
           }
         }
       }
 
-      // 2. PC / 一般ブラウザ向け: 通常のダウンロード処理
+      // PC / ChromeOS等：直接ダウンロードを実行
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
