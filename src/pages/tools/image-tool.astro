@@ -721,7 +721,7 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../../consts';
 				uploadCard.classList.remove('hidden');
 			});
 
-downloadBtn.addEventListener('click', () => {
+			downloadBtn.addEventListener('click', () => {
 				const format = exportFormatSelect.value;
 				let ext = 'jpg';
 				if (format === 'image/png') ext = 'png';
@@ -743,24 +743,28 @@ downloadBtn.addEventListener('click', () => {
 					if (!blob) return;
 
 					const fileName = `${originalFileName}_edited.${ext}`;
-					const file = new File([blob], fileName, { type: format });
 
-					// 1. iOS / スマートフォン向け: Web Share APIで共有シートを開く
-					if (navigator.canShare && navigator.canShare({ files: [file] })) {
-						try {
-							await navigator.share({
-								files: [file],
-								title: '加工済み画像',
-							});
-							return;
-						} catch (err) {
-							if (err.name !== 'AbortError') {
-								console.error(err);
+					// モバイル端末（iOS / Android）判定
+					const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+					// モバイル環境かつWeb Share API対応時のみ共有メニューを開く
+					if (isMobile && navigator.canShare) {
+						const file = new File([blob], fileName, { type: format });
+						if (navigator.canShare({ files: [file] })) {
+							try {
+								await navigator.share({
+									files: [file],
+									title: '加工済み画像',
+								});
+								return; // 共有メニューを開いた場合はここで終了
+							} catch (err) {
+								// キャンセルされた場合は何もしない
+								return;
 							}
 						}
 					}
 
-					// 2. PC / 一般ブラウザ向け: 従来の自動ダウンロード
+					// PC / ChromeOS等：直接ダウンロードを実行
 					const url = URL.createObjectURL(blob);
 					const a = document.createElement('a');
 					a.href = url;
