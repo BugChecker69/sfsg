@@ -152,6 +152,14 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+    }
+
+    .karuta-card:hover {
+      transform: translateY(-4px);
+      background-color: rgba(255, 255, 255, 0.45);
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
     }
 
     .card-text {
@@ -178,6 +186,74 @@
       aspect-ratio: 198 / 262;
       object-fit: cover;
       border: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    /* 拡大・回転モーダル */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background-color: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(4px);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      cursor: pointer;
+      perspective: 1000px;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 24px;
+      max-width: 90vw;
+      width: 420px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: default;
+      transform-style: preserve-3d;
+      animation: spinZoomIn 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes spinZoomIn {
+      0% {
+        opacity: 0;
+        transform: scale(0.2) rotateY(-180deg) rotateZ(-20deg);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1) rotateY(0deg) rotateZ(0deg);
+      }
+    }
+
+    .modal-text {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #1a62a5;
+      text-align: center;
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+
+    .modal-img {
+      width: 100%;
+      max-width: 320px;
+      border-radius: 6px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      aspect-ratio: 198 / 262;
+      object-fit: cover;
+    }
+
+    .modal-hint {
+      margin-top: 14px;
+      font-size: 0.75rem;
+      color: #64748b;
     }
 
     /* フッター領域 */
@@ -458,12 +534,52 @@
     </div>
   </main>
 
+  <!-- 拡大表示用モーダル -->
+  <div id="karutaModal" class="modal-overlay">
+    <div class="modal-content" id="modalContent">
+      <div class="modal-text" id="modalText"></div>
+      <img src="" alt="" class="modal-img" id="modalImg">
+      <div class="modal-hint">クリックで閉じます</div>
+    </div>
+  </div>
+
   <!-- フッター（画像配置） -->
   <footer>
     <div class="footer-logo">
       <img src="ibo_logo.gif" alt="I-BO">
     </div>
   </footer>
+
+  <script>
+    const modal = document.getElementById('karutaModal');
+    const modalText = document.getElementById('modalText');
+    const modalImg = document.getElementById('modalImg');
+    const modalContent = document.getElementById('modalContent');
+    const cards = document.querySelectorAll('.karuta-card');
+
+    cards.forEach(card => {
+      card.addEventListener('click', () => {
+        const text = card.querySelector('.card-text').innerText;
+        const img = card.querySelector('.card-img img');
+
+        modalText.innerText = text;
+        modalImg.src = img.src;
+        modalImg.alt = img.alt;
+
+        // アニメーションを毎回リセットして再発火
+        modalContent.style.animation = 'none';
+        modalContent.offsetHeight; // reflow
+        modalContent.style.animation = 'spinZoomIn 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards';
+
+        modal.classList.add('active');
+      });
+    });
+
+    // 画面のどこをクリックしても閉じる
+    modal.addEventListener('click', () => {
+      modal.classList.remove('active');
+    });
+  </script>
 
 </body>
 </html>
