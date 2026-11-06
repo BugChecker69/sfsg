@@ -4,6 +4,7 @@ description: "『天空の城ラピュタ』の飛行石をモチーフにした
 pubDate: "2026-11-06"
 heroImage: "/sfsg/blog-featured-photos/featured-levistone-verification.webp"
 ---
+I-BO（アイボー）です。
 
 前回の記事「[目的地を光線で指し示す「飛行石ナビ（Levistone-Navi）」を作ってみた](/sfsg/blog/9th-post/)」で予告していた、バイク実走テストを行いました。
 
