@@ -154,12 +154,30 @@
       align-items: center;
       cursor: pointer;
       transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+      user-select: none;
     }
 
     .karuta-card:hover {
       transform: translateY(-4px);
       background-color: rgba(255, 255, 255, 0.45);
       box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+    }
+
+    /* クリック時に元のかるた札が回転するアニメーション */
+    .karuta-card.flipping {
+      animation: flipSpinCard 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    @keyframes flipSpinCard {
+      0% {
+        transform: scale(1) rotate(0deg);
+      }
+      50% {
+        transform: scale(0.9) rotateY(180deg) rotate(4deg);
+      }
+      100% {
+        transform: scale(1) rotateY(360deg) rotate(0deg);
+      }
     }
 
     .card-text {
@@ -188,43 +206,47 @@
       border: 1px solid rgba(0, 0, 0, 0.1);
     }
 
-    /* 拡大・回転モーダル */
+    /* 拡大オーバーレイ */
     .modal-overlay {
       position: fixed;
       inset: 0;
       background-color: rgba(15, 23, 42, 0.75);
-      backdrop-filter: blur(4px);
+      backdrop-filter: blur(5px);
       display: none;
       justify-content: center;
       align-items: center;
       z-index: 1000;
       cursor: pointer;
-      perspective: 1000px;
+      perspective: 1200px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
     }
 
     .modal-overlay.active {
       display: flex;
+      opacity: 1;
     }
 
+    /* モーダルカードの回転＆ズームインアニメーション */
     .modal-content {
       background: #ffffff;
-      border-radius: 12px;
+      border-radius: 14px;
       padding: 24px;
       max-width: 90vw;
       width: 420px;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
       display: flex;
       flex-direction: column;
       align-items: center;
-      cursor: default;
+      cursor: pointer;
       transform-style: preserve-3d;
-      animation: spinZoomIn 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      animation: flipSpinIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
     }
 
-    @keyframes spinZoomIn {
+    @keyframes flipSpinIn {
       0% {
         opacity: 0;
-        transform: scale(0.2) rotateY(-180deg) rotateZ(-20deg);
+        transform: scale(0.2) rotateY(-180deg) rotateZ(-15deg);
       }
       100% {
         opacity: 1;
@@ -233,7 +255,7 @@
     }
 
     .modal-text {
-      font-size: 1.15rem;
+      font-size: 1.25rem;
       font-weight: 700;
       color: #1a62a5;
       text-align: center;
@@ -243,16 +265,16 @@
 
     .modal-img {
       width: 100%;
-      max-width: 320px;
-      border-radius: 6px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      max-width: 300px;
+      border-radius: 8px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
       aspect-ratio: 198 / 262;
       object-fit: cover;
     }
 
     .modal-hint {
       margin-top: 14px;
-      font-size: 0.75rem;
+      font-size: 0.8rem;
       color: #64748b;
     }
 
@@ -387,7 +409,7 @@
 
       <!-- 17 -->
       <div class="karuta-card">
-        <div class="card-text">箏曲を 江戸で流行らせ 山田検校</div>
+        <div class="card-text">そろばんを 葛飾で流行らせた 川端仙次</div>
         <div class="card-img"><img src="img/kkk_17_SO.jpg" alt="そろばんを 葛飾で流行らせた 川端仙次" loading="lazy"></div>
       </div>
       <!-- 18 -->
@@ -543,111 +565,75 @@
     </div>
   </div>
 
-  <!-- フッター（画像配置） -->
+  <!-- フッター -->
   <footer>
     <div class="footer-logo">
       <img src="ibo_logo.gif" alt="I-BO">
     </div>
   </footer>
 
-<script>
+  <script>
     const modal = document.getElementById('karutaModal');
     const modalText = document.getElementById('modalText');
     const modalImg = document.getElementById('modalImg');
     const modalContent = document.getElementById('modalContent');
     const cards = document.querySelectorAll('.karuta-card');
 
-    // 読みの補正辞書（表示テキストの一部または全体に対応）
+    // 読みの補正辞書（スペースを除去したキーで照合）
     const YOMI_MAP = {
-      "櫓がきしむ 川面のどかな 矢切の渡し": "ろがきしむ かわものどかな やぎりのわたし",
-      "日常の 生活描く 綴り方": "にちじょうの せいかつえがく つづりかた",
-      "堀切の 菖蒲を描く 江戸百景": "ほりきりの しょうぶをえがく えどひゃっけい",
-      "寅さんが 駅で故郷 ふりかえる": "とらさんが えきでふるさと ふりかえる",
-      "鷹狩に 将軍通った 小菅御殿": "たかがりに しょうぐんかよった こすげごてん",
-      "年貢米 たくわえ備え 郷倉で": "ねんぐまい たくわえそなえ ごうぐらで",
-      "区歌うたう 光と希望 力あり": "くかうたう ひかりときぼう ちからあり",
-      "故郷と 宇宙をつなぐ 博物館": "ふるさとと うちゅうをつなぐ はくぶつかん",
-      "水戸街道 人馬にぎわう 新宿のまち": "みとかいどう じんばにぎわう にいじゅくのまち"
+      "櫓がきしむ川面のどかな矢切の渡し": "ろがきしむ かわものどかな やぎりのわたし",
+      "日常の生活描く綴り方": "にちじょうの せいかつえがく つづりかた",
+      "堀切の菖蒲を描く江戸百景": "ほりきりの しょうぶをえがく えどひゃっけい",
+      "寅さんが駅で故郷ふりかえる": "とらさんが えきでふるさと ふりかえる",
+      "鷹狩に将軍通った小菅御殿": "たかがりに しょうぐんかよった こすげごてん",
+      "年貢米たくわえ備え郷倉で": "ねんぐまい たくわえそなえ ごうぐらで",
+      "区歌うたう光と希望力あり": "くかうたう ひかりときぼう ちからあり",
+      "故郷と宇宙をつなぐ博物館": "ふるさとと うちゅうをつなぐ はくぶつかん",
+      "水戸街道人馬にぎわう新宿のまち": "みとかいどう じんばにぎわう にいじゅくのまち"
     };
 
     function speakText(text) {
       if (!('speechSynthesis' in window)) return;
-
       window.speechSynthesis.cancel();
 
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = 'ja-JP';
       utterance.rate = 0.95;
       utterance.pitch = 1.0;
-
       window.speechSynthesis.speak(utterance);
     }
 
     cards.forEach(card => {
       card.addEventListener('click', () => {
-        const text = card.querySelector('.card-text').innerText.trim();
+        // 1. クリックされたかるた札自身をその場で回転させる
+        card.classList.remove('flipping');
+        void card.offsetWidth; // リフロー
+        card.classList.add('flipping');
+
+        const originalText = card.querySelector('.card-text').innerText.trim();
         const img = card.querySelector('.card-img img');
 
-        modalText.innerText = text;
+        modalText.innerText = originalText;
         modalImg.src = img.src;
         modalImg.alt = img.alt;
 
-        modalContent.style.animation = 'none';
-        modalContent.offsetHeight;
-        modalContent.style.animation = 'spinZoomIn 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards';
+        // 2. ほんの少しディレイを置いてモーダルが回転拡大表示される
+        setTimeout(() => {
+          modalContent.style.animation = 'none';
+          void modalContent.offsetWidth;
+          modalContent.style.animation = 'flipSpinIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards';
 
-        modal.classList.add('active');
+          modal.classList.add('active');
 
-        // 辞書にあれば平仮名を読み上げ、なければ元の文言を読み上げ
-        const speechText = YOMI_MAP[text] || text;
-        speakText(speechText);
+          // 3. 補正済みの読み仮名で発声
+          const key = originalText.replace(/\s+/g, '');
+          const speechText = YOMI_MAP[key] || originalText;
+          speakText(speechText);
+        }, 120);
       });
     });
 
-    modal.addEventListener('click', () => {
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-      }
-      modal.classList.remove('active');
-    });
-
-    // 音声読み上げ関数
-    function speakText(text) {
-      if (!('speechSynthesis' in window)) return;
-
-      // 既存の音声を停止
-      window.speechSynthesis.cancel();
-
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'ja-JP';
-      utterance.rate = 0.95; // 落ち着いたかるた読みの速度
-      utterance.pitch = 1.0;
-
-      window.speechSynthesis.speak(utterance);
-    }
-
-    cards.forEach(card => {
-      card.addEventListener('click', () => {
-        const text = card.querySelector('.card-text').innerText;
-        const img = card.querySelector('.card-img img');
-
-        modalText.innerText = text;
-        modalImg.src = img.src;
-        modalImg.alt = img.alt;
-
-        // アニメーションを毎回リセットして再発火
-        modalContent.style.animation = 'none';
-        modalContent.offsetHeight; // reflow
-        modalContent.style.animation = 'spinZoomIn 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards';
-
-        modal.classList.add('active');
-
-        // かるたの読み句を音声合成で再生
-        speakText(text);
-      });
-    });
-
-    // 画面クリックで閉じる際に音声も停止
+    // 画面クリックで閉じる＆音声を停止
     modal.addEventListener('click', () => {
       if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
