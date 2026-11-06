@@ -550,12 +550,27 @@
     </div>
   </footer>
 
-  <script>
+<script>
     const modal = document.getElementById('karutaModal');
     const modalText = document.getElementById('modalText');
     const modalImg = document.getElementById('modalImg');
     const modalContent = document.getElementById('modalContent');
     const cards = document.querySelectorAll('.karuta-card');
+
+    // 音声読み上げ関数
+    function speakText(text) {
+      if (!('speechSynthesis' in window)) return;
+
+      // 既存の音声を停止
+      window.speechSynthesis.cancel();
+
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'ja-JP';
+      utterance.rate = 0.95; // 落ち着いたかるた読みの速度
+      utterance.pitch = 1.0;
+
+      window.speechSynthesis.speak(utterance);
+    }
 
     cards.forEach(card => {
       card.addEventListener('click', () => {
@@ -572,11 +587,17 @@
         modalContent.style.animation = 'spinZoomIn 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards';
 
         modal.classList.add('active');
+
+        // かるたの読み句を音声合成で再生
+        speakText(text);
       });
     });
 
-    // 画面のどこをクリックしても閉じる
+    // 画面クリックで閉じる際に音声も停止
     modal.addEventListener('click', () => {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
       modal.classList.remove('active');
     });
   </script>
