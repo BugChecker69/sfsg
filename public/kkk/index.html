@@ -557,6 +557,60 @@
     const modalContent = document.getElementById('modalContent');
     const cards = document.querySelectorAll('.karuta-card');
 
+    // 読みの補正辞書（表示テキストの一部または全体に対応）
+    const YOMI_MAP = {
+      "櫓がきしむ 川面のどかな 矢切の渡し": "ろがきしむ かわものどかな やぎりのわたし",
+      "日常の 生活描く 綴り方": "にちじょうの せいかつえがく つづりかた",
+      "堀切の 菖蒲を描く 江戸百景": "ほりきりの しょうぶをえがく えどひゃっけい",
+      "寅さんが 駅で故郷 ふりかえる": "とらさんが えきでふるさと ふりかえる",
+      "鷹狩に 将軍通った 小菅御殿": "たかがりに しょうぐんかよった こすげごてん",
+      "年貢米 たくわえ備え 郷倉で": "ねんぐまい たくわえそなえ ごうぐらで",
+      "区歌うたう 光と希望 力あり": "くかうたう ひかりときぼう ちからあり",
+      "故郷と 宇宙をつなぐ 博物館": "ふるさとと うちゅうをつなぐ はくぶつかん",
+      "水戸街道 人馬にぎわう 新宿のまち": "みとかいどう じんばにぎわう にいじゅくのまち"
+    };
+
+    function speakText(text) {
+      if (!('speechSynthesis' in window)) return;
+
+      window.speechSynthesis.cancel();
+
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'ja-JP';
+      utterance.rate = 0.95;
+      utterance.pitch = 1.0;
+
+      window.speechSynthesis.speak(utterance);
+    }
+
+    cards.forEach(card => {
+      card.addEventListener('click', () => {
+        const text = card.querySelector('.card-text').innerText.trim();
+        const img = card.querySelector('.card-img img');
+
+        modalText.innerText = text;
+        modalImg.src = img.src;
+        modalImg.alt = img.alt;
+
+        modalContent.style.animation = 'none';
+        modalContent.offsetHeight;
+        modalContent.style.animation = 'spinZoomIn 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards';
+
+        modal.classList.add('active');
+
+        // 辞書にあれば平仮名を読み上げ、なければ元の文言を読み上げ
+        const speechText = YOMI_MAP[text] || text;
+        speakText(speechText);
+      });
+    });
+
+    modal.addEventListener('click', () => {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+      modal.classList.remove('active');
+    });
+
     // 音声読み上げ関数
     function speakText(text) {
       if (!('speechSynthesis' in window)) return;
