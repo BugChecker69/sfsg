@@ -289,6 +289,39 @@
       height: auto;
       display: inline-block;
     }
+
+    /* スクロール追随：トップに戻るボタン */
+    .scroll-to-top {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      width: 46px;
+      height: 46px;
+      background-color: #1a62a5;
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+      cursor: pointer;
+      z-index: 900;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(16px);
+      transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease, background-color 0.2s ease;
+    }
+
+    .scroll-to-top.visible {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    .scroll-to-top:hover {
+      background-color: #0f4c81;
+    }
   </style>
 </head>
 <body>
@@ -572,12 +605,20 @@
     </div>
   </footer>
 
+  <!-- トップに戻るボタン -->
+  <button type="button" id="scrollToTopBtn" class="scroll-to-top" aria-label="ページ最上部へ戻る">
+    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="m18 15-6-6-6 6"/>
+    </svg>
+  </button>
+
   <script>
     const modal = document.getElementById('karutaModal');
     const modalText = document.getElementById('modalText');
     const modalImg = document.getElementById('modalImg');
     const modalContent = document.getElementById('modalContent');
     const cards = document.querySelectorAll('.karuta-card');
+    const topBtn = document.getElementById('scrollToTopBtn');
 
     // 読みの補正辞書（スペースを除去したキーで照合）
     const YOMI_MAP = {
@@ -617,7 +658,7 @@
         modalImg.src = img.src;
         modalImg.alt = img.alt;
 
-        // 2. ほんの少しディレイを置いてモーダルが回転拡大表示される
+        // 2. ディレイ後にモーダルが回転拡大表示
         setTimeout(() => {
           modalContent.style.animation = 'none';
           void modalContent.offsetWidth;
@@ -639,6 +680,22 @@
         window.speechSynthesis.cancel();
       }
       modal.classList.remove('active');
+    });
+
+    // スクロール追随とトップ移動
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 300) {
+        topBtn.classList.add('visible');
+      } else {
+        topBtn.classList.remove('visible');
+      }
+    });
+
+    topBtn.addEventListener('click', () => {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
     });
   </script>
 
