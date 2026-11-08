@@ -1,5 +1,5 @@
 ---
-title: "【実走レビュー】自作の「飛行石ナビ」だけで目的地へ行けるのか？ハンターカブで検証してみた"
+title: "【実走レビュー】自作の「飛行石ナビ」だけで目的地へ行けるのか？ハンターカブで検証してみた！"
 description: "『天空の城ラピュタ』の飛行石をモチーフにした自作PWA「Levistone-Navi」をハンターカブ（CT125）に装着し実走テスト。ルート案内のない一筋の光線だけで目的地に到達できるか検証しました。"
 pubDate: "2026-11-06"
 heroImage: "/sfsg/blog-featured-photos/featured-levistone-verification.webp"
