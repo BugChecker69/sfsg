@@ -1,5 +1,5 @@
 ---
-title: "新世紀エヴァンゲリオンの「MAGI SYSTEM」を最新AIを使って作ってみた"
+title: "新世紀エヴァンゲリオンの「MAGI SYSTEM」を最新AIを使って作ってみた！"
 description: "新世紀エヴァンゲリオンに登場するスーパーコンピュータ「MAGI」の合議決定プロセスを、3つの異なるフロンティアLLMを用いて再現・構築してみました。"
 pubDate: "Oct 29 2026"
 heroImage: "/sfsg/blog-featured-photos/featured-magi-system.jpeg"
