@@ -1,9 +1,10 @@
 ---
-title: '電動スクーター、電欠ギリギリで帰宅してみた'
+title: '電動スクーター、電欠ギリギリで帰宅してみた！'
 description: 'バッテリー残量14%で往復8kmの合気道稽古へ。出力制限と減速の果てに学んだEVスクーターのリアルなマージン。'
 pubDate: 'Nov 08 2026'
 heroImage: '/sfsg/blog-featured-photos/featured-Out-of-electricity.jpeg'
 ---
+I-BO（アイボー）です。
 
 本日は葛飾合気会の稽古日。  
 葛飾区総合スポーツセンターまでの往復距離は約8kmです。
@@ -40,9 +41,9 @@ heroImage: '/sfsg/blog-featured-photos/featured-Out-of-electricity.jpeg'
 それに合わせてスピードも容赦なく落ちていきます。
 
 ```
-20km/h  ...まだ走れてる
+20km/h  ...まだ走れてる、ママチャリと並走w
  ↓
-15km/h  ...後ろの視線が痛い
+15km/h  ...後ろの自動車の運転手からの視線が痛い
  ↓
  8km/h  ...！？
 ```
