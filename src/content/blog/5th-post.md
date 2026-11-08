@@ -1,5 +1,5 @@
 ---
-title: "【完全無料・GAS製】毎朝の「天気・予定・LINE残数」を1通にまとめて届けるLINE通知ボットを作ってみた"
+title: "【完全無料・GAS製】毎朝の「天気・予定・LINE残数」を1通にまとめて届けるLINE通知ボットを作ってみた！"
 description: "Google Apps Script (GAS) と気象庁オープンデータ、GoogleカレンダーAPI、LINE Messaging APIを組み合わせて、毎朝の天気・予定・LINE無料枠の残数を1通にまとめて自動通知する仕組みの解説と実装コード。"
 pubDate: 2026-10-26
 heroImage: "/sfsg/blog-featured-photos/featured-LINE-notification-bot.jpeg"
