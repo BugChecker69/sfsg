@@ -1,5 +1,5 @@
 ---
-title: "目的地を光線で指し示す「飛行石ナビ（Levistone-Navi）」を作ってみた"
+title: "目的地を光線で指し示す「飛行石ナビ（Levistone-Navi）」を作ってみた！"
 description: "『天空の城ラピュタ』の飛行石をモチーフに、目的地方位をリアルタイムに青白い光線で指し示すWebアプリ（PWA）を試作。仕様や仕組み、今後の実走テストについて。"
 pubDate: "2026-11-05"
 heroImage: "/sfsg/blog-featured-photos/featured-levistone-navi.jpeg"
