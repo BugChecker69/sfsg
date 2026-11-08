@@ -1,5 +1,5 @@
 ---
-title: "【動画あり】Honda ICON e:で住宅街を走ってみた――電動バイクの静寂性とEVが秘めるエネルギーの可能性"
+title: "【動画あり】Honda ICON e:で住宅街を走ってみた！――電動バイクの静寂性とEVが秘めるエネルギーの可能性"
 description: "電動スクーター「Honda ICON e:」の住宅街検証走行動画を公開。走って実感した圧倒的な静音性を起点に、内燃機関とEVのエネルギー効率の違いや、全固体電池をはじめとする今後の課題と展望について解説します。"
 pubDate: "2026-10-23"
 heroImage: "https://img.youtube.com/vi/l4tWbwZdqjI/maxresdefault.jpg"
