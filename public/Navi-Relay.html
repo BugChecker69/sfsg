@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ヤフーカーナビ ルート設定</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; display: flex; flex-direction: column; height: 100vh; }
+    #map { flex: 1; width: 100%; }
+    #panel { padding: 12px; background: #fff; box-shadow: 0 -2px 8px rgba(0,0,0,0.15); z-index: 1000; }
+    #points-list { font-size: 13px; margin-bottom: 10px; max-height: 90px; overflow-y: auto; }
+    .point-item { margin-bottom: 4px; display: flex; justify-content: space-between; }
+    .btn-group { display: flex; gap: 8px; }
+    button { flex: 1; padding: 12px; font-size: 15px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; }
+    #btn-launch { background: #ff0033; color: #fff; }
+    #btn-launch:disabled { background: #ccc; cursor: not-allowed; }
+    #btn-reset { background: #eee; color: #333; flex: 0.3; }
+  </style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<div id="panel">
+  <div id="points-list">地図をタップして地点を指定してください（最大4地点）</div>
+  <div class="btn-group">
+    <button id="btn-reset" onclick="resetPoints()">クリア</button>
+    <button id="btn-launch" onclick="launchNavi()" disabled>ナビ起動</button>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  // 地図の初期位置（東京周辺）
+  const map = L.map('map').setView([35.681236, 139.767125], 11);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '© OpenStreetMap'
+  }).addTo(map);
+
+  let points = []; // { lat, lng, marker, type }
+  const MAX_POINTS = 4; // 経由地最大3 + 目的地1
+
+  map.on('click', function(e) {
+    if (points.length >= MAX_POINTS) {
+      alert('指定できるのは最大4地点（経由地3＋目的地1）までです。');
+      return;
+    }
+
+    const lat = e.latlng.lat;
+    const lng = e.latlng.lng;
+
+    const marker = L.marker([lat, lng]).addTo(map);
+    points.push({ lat, lng, marker });
+
+    updateState();
+  });
+
+  function updateState() {
+    const listEl = document.getElementById('points-list');
+    const launchBtn = document.getElementById('btn-launch');
+
+    if (points.length === 0) {
+      listEl.innerHTML = '地図をタップして地点を指定してください（最大4地点）';
+      launchBtn.disabled = true;
+      return;
+    }
+
+    let html = '';
+    points.forEach((p, idx) => {
+      let label = '';
+      if (idx === points.length - 1 && points.length > 1) {
+        label = `【目的地】`;
+      } else {
+        label = `【経由地 ${idx + 1}】`;
+      }
+      p.marker.bindPopup(`${label}<br>${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}`);
+      html += `<div class="point-item"><span>${label}</span><span>${p.lat.toFixed(4)}, ${p.lng.toFixed(4)}</span></div>`;
+    });
+
+    listEl.innerHTML = html;
+    // 目的地が存在する（2地点以上設定されている）場合のみ起動可能
+    launchBtn.disabled = points.length < 2;
+  }
+
+  function resetPoints() {
+    points.forEach(p => map.removeLayer(p.marker));
+    points = [];
+    updateState();
+  }
+
+  function launchNavi() {
+    if (points.length < 2) return;
+
+    // 最後のピンを目的地とし、それ以前を通過順の経由地とする
+    const destination = points[points.length - 1];
+    const viaPoints = points.slice(0, points.length - 1);
+
+    const destLat = destination.lat;
+    const destLon = destination.lng;
+
+    let schemeUrl = `yjcarnavi://navi/select?lat=${destLat}&lon=${destLon}&name=%E7%9B%AE%E7%9A%84%E5%9C%B0`;
+
+    if (viaPoints.length > 0) {
+      const viaParam = viaPoints.map(p => `${p.lat},${p.lng}`).join('|');
+      schemeUrl += `&via=${encodeURIComponent(viaParam)}`;
+    }
+
+    // URLスキームの呼び出し
+    window.location.href = schemeUrl;
+  }
+</script>
+
+</body>
+</html>
