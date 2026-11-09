@@ -118,7 +118,8 @@
   <div class="btn-group">
     <button id="btn-reset" class="action-btn" onclick="resetPoints()">クリア</button>
     <button id="btn-locate" class="action-btn" onclick="locateCurrentPosition()">現在地</button>
-    <a id="btn-launch" class="btn-action disabled" href="#">ナビ起動</a>
+    <!-- target="_blank" と rel="noopener" を付与してiOSの遷移ブロックを回避 -->
+    <a id="btn-launch" class="btn-action disabled" href="#" target="_blank" rel="noopener">ナビ起動</a>
   </div>
 </div>
 
@@ -126,7 +127,6 @@
 <script>
   const map = L.map('map', { zoomControl: false }).setView([35.681236, 139.767125], 11);
 
-  // ズームボタンを右下に配置（上部検索バーとの干渉を防ぐため）
   L.control.zoom({ position: 'bottomright' }).addTo(map);
 
   L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png', {
@@ -138,7 +138,6 @@
   const MAX_POINTS = 4;
   let currentMarker = null;
 
-  // 地名・住所検索処理（国土地理院ジオコーディングAPI）
   function searchLocation() {
     const query = document.getElementById('search-input').value.trim();
     if (!query) return;
@@ -152,7 +151,6 @@
           alert('該当する場所が見つかりませんでした。');
           return;
         }
-        // 最も一致度の高い最初の候補を取得（国土地理院APIは [経度, 緯度] の順）
         const [lon, lat] = data[0].geometry.coordinates;
         map.setView([lat, lon], 14);
       })
@@ -161,7 +159,6 @@
       });
   }
 
-  // 地図クリック処理
   map.on('click', function(e) {
     if (points.length >= MAX_POINTS) {
       alert('指定できるのは最大4地点（経由地3＋目的地1）までです。');
@@ -200,16 +197,15 @@
     const destination = points[points.length - 1];
     const viaPoints = points.slice(0, points.length - 1);
 
+    // 目的地の設定（nameは必須パラメータ）
     let schemeUrl = `yjcarnavi://navi/select?lat=${destination.lat}&lon=${destination.lng}&name=%E7%9B%AE%E7%9A%84%E5%9C%B0`;
 
+    // 経由地が存在する場合
+    // ※ヤフーカーナビ公式構文: via=緯度,経度|緯度,経度
+    // ※パイプ記号（|）はエンコードせずそのまま渡すことでAndroid/iOS両方の内部パーサーに正常認識させる
     if (viaPoints.length > 0) {
-      const viaPipe = viaPoints.map(p => `${p.lat},${p.lng}`).join('|');
-      schemeUrl += `&via=${encodeURIComponent(viaPipe)}`;
-
-      viaPoints.forEach((p, i) => {
-        const num = i + 1;
-        schemeUrl += `&via${num}_lat=${p.lat}&via${num}_lon=${p.lng}`;
-      });
+      const viaParam = viaPoints.map(p => `${p.lat},${p.lng}`).join('|');
+      schemeUrl += `&via=${viaParam}`;
     }
 
     launchBtn.href = schemeUrl;
