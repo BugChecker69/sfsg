@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>ヤフーカーナビ ルート中継</title>
+  <title>Googleマップ ルート中継</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -84,7 +84,7 @@
     }
     #btn-launch {
       flex: 2;
-      background: #ff0033;
+      background: #1a73e8; /* Google Blue */
       color: #fff;
     }
     #btn-launch.disabled {
@@ -98,7 +98,7 @@
     }
     #btn-locate {
       flex: 1;
-      background: #007aff;
+      background: #34a853; /* Google Green */
       color: #fff;
     }
   </style>
@@ -118,7 +118,6 @@
   <div class="btn-group">
     <button id="btn-reset" class="action-btn" onclick="resetPoints()">クリア</button>
     <button id="btn-locate" class="action-btn" onclick="locateCurrentPosition()">現在地</button>
-    <!-- target="_blank" と rel="noopener" を付与してiOSの遷移ブロックを回避 -->
     <a id="btn-launch" class="btn-action disabled" href="#" target="_blank" rel="noopener">ナビ起動</a>
   </div>
 </div>
@@ -135,7 +134,7 @@
   }).addTo(map);
 
   let points = [];
-  const MAX_POINTS = 4;
+  const MAX_POINTS = 4; // 経由地最大3 + 目的地1
   let currentMarker = null;
 
   function searchLocation() {
@@ -193,22 +192,20 @@
 
     listEl.innerHTML = html;
 
-    // URLスキーム構築
+    // Google Maps Universal URL の構築
     const destination = points[points.length - 1];
     const viaPoints = points.slice(0, points.length - 1);
 
-    // 目的地の設定（nameは必須パラメータ）
-    let schemeUrl = `yjcarnavi://navi/select?lat=${destination.lat}&lon=${destination.lng}&name=%E7%9B%AE%E7%9A%84%E5%9C%B0`;
+    // travelmode=driving（車・バイク向けナビ）
+    let mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${destination.lat},${destination.lng}&travelmode=driving`;
 
-    // 経由地が存在する場合
-    // ※ヤフーカーナビ公式構文: via=緯度,経度|緯度,経度
-    // ※パイプ記号（|）はエンコードせずそのまま渡すことでAndroid/iOS両方の内部パーサーに正常認識させる
+    // 経由地（waypoints）パラメータの追加（パイプ | で結合）
     if (viaPoints.length > 0) {
-      const viaParam = viaPoints.map(p => `${p.lat},${p.lng}`).join('|');
-      schemeUrl += `&via=${viaParam}`;
+      const waypointsParam = viaPoints.map(p => `${p.lat},${p.lng}`).join('|');
+      mapsUrl += `&waypoints=${encodeURIComponent(waypointsParam)}`;
     }
 
-    launchBtn.href = schemeUrl;
+    launchBtn.href = mapsUrl;
     launchBtn.classList.remove('disabled');
   }
 
@@ -233,7 +230,7 @@
 
         currentMarker = L.circleMarker([lat, lng], {
           radius: 8,
-          fillColor: '#007aff',
+          fillColor: '#34a853',
           color: '#ffffff',
           weight: 2,
           opacity: 1,
