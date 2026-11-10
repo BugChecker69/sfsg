@@ -2,7 +2,7 @@
 title: '電動スクーター、電欠ギリギリで帰宅してみた！'
 description: 'バッテリー残量14%で往復8kmの合気道稽古へ。出力制限と減速の果てに学んだEVスクーターのリアルなマージン。'
 pubDate: 'Nov 08 2026'
-heroImage: '/sfsg/blog-featured-photos/featured-Out-of-electricity.jpeg'
+heroImage: '/sfsg/blog-featured-photos/featured-Out-of-electricity.webp'
 ---
 I-BO（アイボー）です。
 
