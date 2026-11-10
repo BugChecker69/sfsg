@@ -1,5 +1,5 @@
 ---
-title: "マスコットキャラクター・小丸"
+title: "マスコットキャラクター・小丸くん"
 pubDate: 2026-11-10
 location: "東京都葛飾区"
 heroImage: "/sfsg/photos/komaru.webp"
